@@ -1,0 +1,60 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyMinions", "MyMinions\MyMinions.csproj", "{2798C1F3-88E1-4149-96E7-4DF693534736}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoKit", "..\MonoKit\MonoKit\MonoKit.csproj", "{7BA35695-77B9-4237-AE28-396B0E5DDF7F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoKit.iOS", "..\MonoKit\MonoKit.iOS\MonoKit.iOS.csproj", "{ABE22D63-B716-4C58-9A59-5915F47968D4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|iPhoneSimulator = Debug|iPhoneSimulator
+		Release|iPhoneSimulator = Release|iPhoneSimulator
+		Debug|iPhone = Debug|iPhone
+		Release|iPhone = Release|iPhone
+		Ad-Hoc|iPhone = Ad-Hoc|iPhone
+		AppStore|iPhone = AppStore|iPhone
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2798C1F3-88E1-4149-96E7-4DF693534736}.Ad-Hoc|iPhone.ActiveCfg = Ad-Hoc|iPhone
+		{2798C1F3-88E1-4149-96E7-4DF693534736}.Ad-Hoc|iPhone.Build.0 = Ad-Hoc|iPhone
+		{2798C1F3-88E1-4149-96E7-4DF693534736}.AppStore|iPhone.ActiveCfg = AppStore|iPhone
+		{2798C1F3-88E1-4149-96E7-4DF693534736}.AppStore|iPhone.Build.0 = AppStore|iPhone
+		{2798C1F3-88E1-4149-96E7-4DF693534736}.Debug|iPhone.ActiveCfg = Debug|iPhone
+		{2798C1F3-88E1-4149-96E7-4DF693534736}.Debug|iPhone.Build.0 = Debug|iPhone
+		{2798C1F3-88E1-4149-96E7-4DF693534736}.Debug|iPhoneSimulator.ActiveCfg = Debug|iPhoneSimulator
+		{2798C1F3-88E1-4149-96E7-4DF693534736}.Debug|iPhoneSimulator.Build.0 = Debug|iPhoneSimulator
+		{2798C1F3-88E1-4149-96E7-4DF693534736}.Release|iPhone.ActiveCfg = Release|iPhone
+		{2798C1F3-88E1-4149-96E7-4DF693534736}.Release|iPhone.Build.0 = Release|iPhone
+		{2798C1F3-88E1-4149-96E7-4DF693534736}.Release|iPhoneSimulator.ActiveCfg = Release|iPhoneSimulator
+		{2798C1F3-88E1-4149-96E7-4DF693534736}.Release|iPhoneSimulator.Build.0 = Release|iPhoneSimulator
+		{7BA35695-77B9-4237-AE28-396B0E5DDF7F}.Ad-Hoc|iPhone.ActiveCfg = Debug|Any CPU
+		{7BA35695-77B9-4237-AE28-396B0E5DDF7F}.Ad-Hoc|iPhone.Build.0 = Debug|Any CPU
+		{7BA35695-77B9-4237-AE28-396B0E5DDF7F}.AppStore|iPhone.ActiveCfg = Debug|Any CPU
+		{7BA35695-77B9-4237-AE28-396B0E5DDF7F}.AppStore|iPhone.Build.0 = Debug|Any CPU
+		{7BA35695-77B9-4237-AE28-396B0E5DDF7F}.Debug|iPhone.ActiveCfg = Debug|Any CPU
+		{7BA35695-77B9-4237-AE28-396B0E5DDF7F}.Debug|iPhone.Build.0 = Debug|Any CPU
+		{7BA35695-77B9-4237-AE28-396B0E5DDF7F}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
+		{7BA35695-77B9-4237-AE28-396B0E5DDF7F}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
+		{7BA35695-77B9-4237-AE28-396B0E5DDF7F}.Release|iPhone.ActiveCfg = Release|Any CPU
+		{7BA35695-77B9-4237-AE28-396B0E5DDF7F}.Release|iPhone.Build.0 = Release|Any CPU
+		{7BA35695-77B9-4237-AE28-396B0E5DDF7F}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
+		{7BA35695-77B9-4237-AE28-396B0E5DDF7F}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
+		{ABE22D63-B716-4C58-9A59-5915F47968D4}.Ad-Hoc|iPhone.ActiveCfg = Debug|Any CPU
+		{ABE22D63-B716-4C58-9A59-5915F47968D4}.Ad-Hoc|iPhone.Build.0 = Debug|Any CPU
+		{ABE22D63-B716-4C58-9A59-5915F47968D4}.AppStore|iPhone.ActiveCfg = Debug|Any CPU
+		{ABE22D63-B716-4C58-9A59-5915F47968D4}.AppStore|iPhone.Build.0 = Debug|Any CPU
+		{ABE22D63-B716-4C58-9A59-5915F47968D4}.Debug|iPhone.ActiveCfg = Debug|Any CPU
+		{ABE22D63-B716-4C58-9A59-5915F47968D4}.Debug|iPhone.Build.0 = Debug|Any CPU
+		{ABE22D63-B716-4C58-9A59-5915F47968D4}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
+		{ABE22D63-B716-4C58-9A59-5915F47968D4}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
+		{ABE22D63-B716-4C58-9A59-5915F47968D4}.Release|iPhone.ActiveCfg = Release|Any CPU
+		{ABE22D63-B716-4C58-9A59-5915F47968D4}.Release|iPhone.Build.0 = Release|Any CPU
+		{ABE22D63-B716-4C58-9A59-5915F47968D4}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
+		{ABE22D63-B716-4C58-9A59-5915F47968D4}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = MyMinions\MyMinions.csproj
+	EndGlobalSection
+EndGlobal
