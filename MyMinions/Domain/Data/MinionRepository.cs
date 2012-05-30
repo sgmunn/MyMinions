@@ -38,6 +38,14 @@ namespace MyMinions.Domain.Data
         public MinionRepository(SQLiteConnection connection) : base(connection)
         {
         }
+
+        public override IEnumerable<MinionDataContract> GetAll()
+        {
+            // override to exclude deleted items
+
+            // SQLite cannot compile '!'
+            return GetSync(() => this.Connection.Table<MinionDataContract>().Where(x => x.Deleted == false || x.Deleted == null).AsEnumerable());
+        }
     }
 }
 

@@ -39,6 +39,7 @@ namespace MyMinions.Domain
         private void Bootstrap()
         {
             this.RegisterSnapshot<Minion>(c => new SnapshotRepository<MinionDataContract>(this.Connection));
+            // todo: register a builder to delete deleted minions
         }
     }
 

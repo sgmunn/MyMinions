@@ -16,7 +16,6 @@ using MonoKit.Domain.Events;
 
 namespace MyMinions.UI
 {
-    // todo: support delete of aggregate
     public class SettingsViewController : TableViewController
     {
         private readonly IDomainContext context;
@@ -25,13 +24,16 @@ namespace MyMinions.UI
 
         private readonly CompositeDisposable lifetime;
 
+        private readonly IDomainCommandExecutor<Minion> commandExecutor;
+
         private MinionDataContract editingMinion;
 
-        public SettingsViewController(IDomainContext context, IMinionRepository repository) : base(MonoTouch.UIKit.UITableViewStyle.Plain, new SettingsSource())
+        public SettingsViewController(IDomainContext context, IMinionRepository repository) : base(UITableViewStyle.Plain, new SettingsSource())
         {
             this.context = context;
             this.repository = repository;
             this.lifetime = new CompositeDisposable();
+            this.commandExecutor = context.NewCommandExecutor<Minion>();
 
             this.NavigationItem.Title = "Settings";
             this.NavigationItem.RightBarButtonItem = new UIBarButtonItem(UIBarButtonSystemItem.Edit, this.Edit);
@@ -41,7 +43,8 @@ namespace MyMinions.UI
         {
             base.ViewDidLoad();
 
-            this.lifetime.Add(this.context.EventBus.Subscribe(this.OnNextEvent));
+            // todo: implement .Where so that we can subscribe to the events we want to know about
+            this.lifetime.Add(this.context.EventBus.Subscribe<IEvent>(this.OnNextEvent));
             
             if (this.Source.Count == 0)
             {
@@ -96,7 +99,7 @@ namespace MyMinions.UI
             section1.Clear();
             foreach (var minion in this.repository.GetAll().OrderBy(x => x.MinionName))
             {
-                section1.Add(new DisclosureElement(minion, new Binding("MinionName")) { Command = this.NavigateToMinion });
+                section1.Add(new DisclosureElement(minion, new Binding("MinionName")) { Command = this.NavigateToMinion, Edit = this.EditMinion });
             }
                 
             section1.EndUpdate();
@@ -104,7 +107,6 @@ namespace MyMinions.UI
 
         private void OnNextEvent(IEvent @event)
         {
-            Console.WriteLine("event bus {0}", @event);
             // we have a choice, we can reload the whole list, just the one aggregate or update the UI directly
             // what we do depends on what we're displaying here.  I'll show the three as an example
 
@@ -117,7 +119,7 @@ namespace MyMinions.UI
             if (@event is CreatedEvent)
             {
                 var minion = this.repository.GetById(@event.AggregateId);
-                section1.Insert(0, new DisclosureElement(minion, new Binding("MinionName")) { Command = this.NavigateToMinion });
+                section1.Insert(0, new DisclosureElement(minion, new Binding("MinionName")) { Command = this.NavigateToMinion, Edit = this.EditMinion });
             }
             else
             {
@@ -128,13 +130,20 @@ namespace MyMinions.UI
                     var minion = (MinionDataContract)element.Data;
 
                     minion.MinionName = ((NameChangedEvent)@event).Name;
-
                     // update bindings because our data contract doesn't support INotifyPropertyChanged
-                    var bindings = element.GetBindingExpressions("Text");
-                    foreach (var binding in bindings)
-                    {
-                        binding.UpdateTarget();
-                    }
+                    //var bindings = element.GetBindingExpressions("Text");
+                    //foreach (var binding in bindings)
+                    //{
+                    //    binding.UpdateTarget();
+                    //}
+                    minion.NotifyPropertiesChanged();
+                }
+
+                if (@event is DeletedEvent)
+                {
+                    // nothing to do, already removed from list
+                    //var element = section1.First(x => ((MinionDataContract)x.Data).Id == @event.AggregateId);
+                    //section1.Remove(element);
                 }
             }
         }
@@ -144,20 +153,26 @@ namespace MyMinions.UI
             this.NavigateToMinion((MinionDataContract)element.Data);
         }
 
+        private void EditMinion(Element element)
+        {
+            var minion = (MinionDataContract)element.Data;
+            this.commandExecutor.Execute(new DeleteCommand { AggregateId = minion.Id, });
+        }
+
         private void NavigateToMinion(MinionDataContract minion)
         {
             this.editingMinion = minion;
 
             // if this was a specific controller class we could intercept viewDidDisappear to trigger saves
             // in this case we'll remember which one we're editing and do the save on the view did appear
-            var controller = new TableViewController(UITableViewStyle.Grouped);
+            var controller = new TableViewController(UITableViewStyle.Grouped) ;
             controller.NavigationItem.Title = minion.MinionName ?? "New Minion";
 
             var section1 = new TableViewSection(controller.Source);
             
-            section1.Header = " ";
+            section1.Header = "Minion Name";
             section1.BeginUpdate();
-            section1.Add(new TextInputElement(minion, null, new Binding("MinionName")) { Placeholder = "Name" });
+            section1.Add(new TextInputElement(minion, null, new Binding("MinionName")) { Placeholder = "Name", CanEdit = (_) => false });
             section1.EndUpdate();
             
             this.NavigationController.PushViewController(controller, true);
@@ -165,7 +180,7 @@ namespace MyMinions.UI
 
         private void SaveMinion(MinionDataContract minion)
         {
-            this.context.NewCommandExecutor<Minion>().Execute(new ChangeNameCommand { AggregateId = minion.Id, Name = minion.MinionName, });
+            this.commandExecutor.Execute(new ChangeNameCommand { AggregateId = minion.Id, Name = minion.MinionName, });
         }
 
         private void Edit(object sender, EventArgs args)
@@ -186,7 +201,7 @@ namespace MyMinions.UI
         {
             // todo: async
             var id = Guid.NewGuid();
-            this.context.NewCommandExecutor<Minion>().Execute(new CreateCommand { AggregateId = id, });
+            this.commandExecutor.Execute(new CreateCommand { AggregateId = id, });
             // do this after command execution
             this.NavigateToMinion(this.repository.GetById(id));
 

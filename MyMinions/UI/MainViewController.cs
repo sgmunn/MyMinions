@@ -9,6 +9,9 @@ using MonoKit;
 using MyMinions.Domain.Data;
 using MonoKit.Domain;
 using System.Linq;
+using MonoKit.Reactive.Disposables;
+using MonoKit.Reactive;
+using MyMinions.Domain;
 
 namespace MyMinions.UI
 {
@@ -16,6 +19,7 @@ namespace MyMinions.UI
     {
         private readonly IDomainContext context;
         private readonly IMinionRepository repository;
+        private readonly CompositeDisposable lifetime;
 
         private ScrollingPageView pagedView;
         private List<MinionDataContract> minions;
@@ -25,12 +29,16 @@ namespace MyMinions.UI
         {
             this.context = context;
             this.repository = repository;
+            this.lifetime = new CompositeDisposable();
+
+            // TODO: observe deleted events and name changes
+            this.lifetime.Add(this.context.EventBus.Subscribe<IEvent>(this.OnNextEvent));
         }
                 
         public void Load()
         {
             // initial bootstrap method, we've not loaded any data previously
-            this.minions = this.repository.GetAll().ToList();
+            this.minions = this.repository.GetAll().OrderBy(x => x.MinionName).ToList();
             this.LoadMinions(0);
         }
 
@@ -88,9 +96,14 @@ namespace MyMinions.UI
             
             if (this.minions != null && this.minions.Count > 0) 
             {
+            //this.minions = this.repository.GetAll().OrderBy(x => x.MinionName).ToList();
+            //this.pagedView.ReloadPages();
+            
                 if (this.pagedView != null)
                     this.pagedView.ScrollToPage(this.currentPage);
-                //this.pagedView.ReloadPages();
+                
+                // refresh current minion
+                
                 //this.IScrollingPageViewDelegate.UpdatePage(0, )
             }
         }
@@ -105,6 +118,19 @@ namespace MyMinions.UI
         {
             var settings = new SettingsViewController(this.context, this.repository);
             this.NavigationController.PushViewController(settings, true);
+        }
+
+        private void OnNextEvent(IEvent @event)
+        {
+            // I think I'd prefer to have notification of repository changes instead, perhaps event the thing
+            // that actually changed so I don't have to reload it
+            if (@event.AggregateTypeId == Minion.AggregateTypeId)
+            {
+                if (@event is NameChangedEvent)
+                {
+
+                }
+            }
         }
                   
         private void LoadMinions(int pageIndex)

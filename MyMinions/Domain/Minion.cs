@@ -21,12 +21,16 @@
 using System;
 using MonoKit.Domain;
 using MyMinions.Domain.Data;
+using MonoKit.Domain.Commands;
+using MonoKit.Domain.Events;
 
 
 namespace MyMinions.Domain
 {
     public class Minion : AggregateRoot<MinionDataContract>
     {
+        public static string AggregateTypeId = "Minion";
+
         public Minion()
         {
         }
@@ -39,6 +43,16 @@ namespace MyMinions.Domain
         public void Apply(NameChangedEvent @event)
         {
             this.InternalState.MinionName = @event.Name;
+        }
+
+        public void Execute(DeleteCommand command)
+        {
+            this.NewEvent(new DeletedEvent());
+        }
+
+        public void Apply(DeletedEvent @event)
+        {
+            this.InternalState.Deleted = true;
         }
     }
 

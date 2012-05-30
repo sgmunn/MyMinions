@@ -18,22 +18,47 @@
 //  </copyright>
 //  --------------------------------------------------------------------------------------------------------------------
 // 
+
 namespace MyMinions.Domain.Data
 {
     using System;
+    using System.ComponentModel;
     using MonoKit.Data.SQLite;
     using MonoKit.Domain;
     
-    public class MinionDataContract : ISnapshot
+    public class MinionDataContract : ISnapshot, INotifyPropertyChanged
     {
+        public MinionDataContract()
+        {
+            this.MinionName = "New Minion";
+        }
+        
         [PrimaryKey]
         public Guid Id { get; set; }
 
         public int Version { get; set; }
 
+        public bool Deleted { get; set; }
+
         public string MinionName { get; set; }
 
         public decimal CurrentBalance { get; set; }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public void NotifyPropertiesChanged()
+        {
+            this.OnPropertyChanged(string.Empty);
+        }
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            var handler = this.PropertyChanged;
+            if (handler != null)
+            {
+                handler(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
     }
 }
 
