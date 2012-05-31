@@ -38,18 +38,11 @@ namespace MyMinions
     [Register ("AppDelegate")]
     public partial class AppDelegate : UIApplicationDelegate
     {
-        private readonly MinionContext context;
+        private MinionContext context;
         private UIWindow window;
         private UINavigationController navController;
         private MainViewController mainViewController;
 
-        public AppDelegate() : base()
-        {
-            // todo: research if this is allowed or correct, or does _everything_ have to be in the finishedlaunching
-            this.context = new MinionContext(MinionDB.Main, null, new ObservableDomainEventBus());
-        }
-
-        //
         // This method is invoked when the application has loaded and is ready to run. In this 
         // method you should instantiate the window, load the UI into it and then make the window
         // visible.
@@ -64,9 +57,6 @@ namespace MyMinions
             this.window.RootViewController = this.navController;
             this.window.MakeKeyAndVisible();
 
-            this.mainViewController = new MainViewController(this.context, new MinionRepository(MinionDB.Main));
-            this.navController.PushViewController(this.mainViewController, false);
-
             var startupThread = new Thread(this.Startup);
             startupThread.Start();
 
@@ -75,8 +65,15 @@ namespace MyMinions
 
         private void Startup()
         {
+            // lazy static constructor for the DB will not get executed until this point, out of the FinishedLoading
+            // allowing the application to respond as quick as it can.
+            this.context = new MinionContext(MinionDB.Main, null, new ObservableDomainEventBus());
+
             this.InvokeOnMainThread(() =>
             {
+                this.mainViewController = new MainViewController(this.context, new MinionRepository(MinionDB.Main));
+                this.navController.PushViewController(this.mainViewController, false);
+
                 this.mainViewController.Load();
             });
         }

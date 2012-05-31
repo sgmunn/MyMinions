@@ -13,6 +13,8 @@ using MonoKit.Reactive.Disposables;
 using MyMinions.Domain;
 using MonoKit.Domain.Commands;
 using MonoKit.Domain.Events;
+using MonoKit.Tasks;
+using System.Threading.Tasks;
 
 namespace MyMinions.UI
 {
@@ -37,6 +39,7 @@ namespace MyMinions.UI
 
             this.NavigationItem.Title = "Settings";
             this.NavigationItem.RightBarButtonItem = new UIBarButtonItem(UIBarButtonSystemItem.Edit, this.Edit);
+            this.NavigationItem.RightBarButtonItem.Enabled = false;
         }
         
         public override void ViewDidLoad()
@@ -44,18 +47,22 @@ namespace MyMinions.UI
             base.ViewDidLoad();
 
             // todo: implement .Where so that we can subscribe to the events we want to know about
-            this.lifetime.Add(this.context.EventBus.Subscribe<IEvent>(this.OnNextEvent));
+            IObservable<IReadModel> bus = this.context.EventBus;
+            this.lifetime.Add(bus.ObserveOnMainThread().Subscribe<IReadModel>(this.OnNextReadModel));
             
             if (this.Source.Count == 0)
             {
                 new TableViewSection(this.Source) { AllowMoveItems = false };
             }
 
-            this.LoadMinions();
+            this.LoadMinionsAsync();
         }
         
         public override void ViewDidUnload()
         {
+            // this can happen if the view gets unloaded with a memory warning and we'll end up with
+            // multiple subscriptions to the domain model when we register in view did load
+            this.lifetime.Clear();
             base.ViewDidUnload();
         }
 
@@ -73,7 +80,7 @@ namespace MyMinions.UI
 
             if (this.editingMinion != null)
             {
-                this.SaveMinion(this.editingMinion);
+                this.SaveMinionAsync(this.editingMinion);
             }
 
             this.editingMinion = null;
@@ -83,77 +90,96 @@ namespace MyMinions.UI
         {
             base.ViewDidDisappear(animated);
 
+            // the view is being *re*moved from it's parent contoller
+            // so we should clear the lifetime
             if (this.IsMovingFromParentViewController)
             {
                 this.lifetime.Clear();
             }
         }
 
-        private void LoadMinions()
+        private void LoadMinionsAsync()
         {
-            // todo: async
-            // todo: merge existing items instead of reload
+            this.NavigationItem.RightBarButtonItem.Enabled = false;
+
+            // create a task to load the minions.  Observe the results of the task on
+            // the main thread during which we'll load them into the table and 
+            // enable the edit button.
+            var subscription = new Task<IEnumerable<MinionDataContract>>(() =>
+                {
+                    return this.repository.GetAll().OrderBy(x => x.MinionName);
+                }).AsObservable().ObserveOnMainThread().Subscribe((minions) =>
+                    {
+                        this.NavigationItem.RightBarButtonItem.Enabled = false;
+                        this.LoadMinions(minions);
+                    });
+
+            // make sure to add to lifetime so that if we navigate away 
+            this.lifetime.Add(subscription);
+        }
+
+        private void LoadMinions(IEnumerable<MinionDataContract> minions)
+        {
             var section1 = ((TableViewSection)this.Source.SectionAt(0));
                 
             section1.BeginUpdate();
             section1.Clear();
-            foreach (var minion in this.repository.GetAll().OrderBy(x => x.MinionName))
+            foreach (var minion in minions)
             {
-                section1.Add(new DisclosureElement(minion, new Binding("MinionName")) { Command = this.NavigateToMinion, Edit = this.EditMinion });
+                section1.Add(new DisclosureElement(minion, new Binding("MinionName")) { Command = this.NavigateToMinion, Edit = this.DeleteMinion });
             }
                 
             section1.EndUpdate();
+            this.NavigationItem.RightBarButtonItem.Enabled = true;
         }
 
-        private void OnNextEvent(IEvent @event)
+        private void OnNextReadModel(IReadModel readModel)
         {
-            // we have a choice, we can reload the whole list, just the one aggregate or update the UI directly
-            // what we do depends on what we're displaying here.  I'll show the three as an example
+            if (readModel is MinionDataContract)
+            {
+                this.MinionUpdated((MinionDataContract)readModel);
+            }
+        }
 
-            // 1st option -- ideally this would merge our already loaded items
-            // this.LoadMinions();
+        private void MinionUpdated(MinionDataContract minion)
+        {
+            if (minion.Deleted)
+            {
+                return;
+            }
 
             var section1 = ((TableViewSection)this.Source.SectionAt(0));
 
-            // 2nd option, update or replace the element that was changed or added
-            if (@event is CreatedEvent)
+            // could be added, changed or deleted
+            var element = section1.FirstOrDefault(x => ((MinionDataContract)x.Data).Id == minion.Id);
+
+            if (element != null)
             {
-                var minion = this.repository.GetById(@event.AggregateId);
-                section1.Insert(0, new DisclosureElement(minion, new Binding("MinionName")) { Command = this.NavigateToMinion, Edit = this.EditMinion });
+                var current = (MinionDataContract)element.Data;
+                current.MinionName = minion.MinionName;
+                // update bindings because our data contract doesn't support INotifyPropertyChanged
+                //var bindings = element.GetBindingExpressions("Text");
+                //foreach (var binding in bindings)
+                //{
+                //    binding.UpdateTarget();
+                //}
+                current.NotifyPropertiesChanged();
             }
             else
             {
-                // 3rd option - update table directly.  works best if the data being loaded knows how to update bindings
-                if (@event is NameChangedEvent)
-                {
-                    var element = section1.First(x => ((MinionDataContract)x.Data).Id == @event.AggregateId);
-                    var minion = (MinionDataContract)element.Data;
-
-                    minion.MinionName = ((NameChangedEvent)@event).Name;
-                    // update bindings because our data contract doesn't support INotifyPropertyChanged
-                    //var bindings = element.GetBindingExpressions("Text");
-                    //foreach (var binding in bindings)
-                    //{
-                    //    binding.UpdateTarget();
-                    //}
-                    minion.NotifyPropertiesChanged();
-                }
-
-                if (@event is DeletedEvent)
-                {
-                    // nothing to do, already removed from list
-                    //var element = section1.First(x => ((MinionDataContract)x.Data).Id == @event.AggregateId);
-                    //section1.Remove(element);
-                }
+                // the minion is a new one
+                // also Version == 1
+                section1.Insert(0, new DisclosureElement(minion, new Binding("MinionName")) { Command = this.NavigateToMinion, Edit = this.DeleteMinion });
+                this.NavigateToMinion(minion);
             }
         }
-        
+
         private void NavigateToMinion(Element element)
         {
             this.NavigateToMinion((MinionDataContract)element.Data);
         }
 
-        private void EditMinion(Element element)
+        private void DeleteMinion(Element element)
         {
             var minion = (MinionDataContract)element.Data;
             this.commandExecutor.Execute(new DeleteCommand { AggregateId = minion.Id, });
@@ -178,13 +204,20 @@ namespace MyMinions.UI
             this.NavigationController.PushViewController(controller, true);
         }
 
-        private void SaveMinion(MinionDataContract minion)
+        private void SaveMinionAsync(MinionDataContract minion)
         {
-            this.commandExecutor.Execute(new ChangeNameCommand { AggregateId = minion.Id, Name = minion.MinionName, });
+            var subscription = new Task
+                (() => 
+                 {
+                    this.commandExecutor.Execute(new ChangeNameCommand { AggregateId = minion.Id, Name = minion.MinionName, });
+                }).AsObservable<Unit>().Subscribe();
+
+            this.lifetime.Add(subscription);
         }
 
         private void Edit(object sender, EventArgs args)
         {
+            GC.Collect();
             this.NavigationItem.RightBarButtonItem = new UIBarButtonItem(UIBarButtonSystemItem.Done, this.DoneEdit);
             this.NavigationItem.LeftBarButtonItem = new UIBarButtonItem(UIBarButtonSystemItem.Add, this.Add);
             this.TableView.SetEditing(true, true);
@@ -199,11 +232,14 @@ namespace MyMinions.UI
         
         private void Add(object sender, EventArgs args)
         {
-            // todo: async
-            var id = Guid.NewGuid();
-            this.commandExecutor.Execute(new CreateCommand { AggregateId = id, });
-            // do this after command execution
-            this.NavigateToMinion(this.repository.GetById(id));
+            var subscription = new Task
+                (() => 
+                 {
+                    var id = Guid.NewGuid();
+                    this.commandExecutor.Execute(new CreateCommand { AggregateId = id, });
+                }).AsObservable<Unit>().Subscribe();
+
+            this.lifetime.Add(subscription);
 
             this.DoneEdit(null, null);
         }

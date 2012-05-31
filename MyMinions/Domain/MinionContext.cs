@@ -43,10 +43,8 @@ namespace MyMinions.Domain
         }
     }
 
-    public class MinionDB : SQLiteConnection
+    public sealed class MinionDB : SQLiteConnection
     {
-        private static MinionDB mainDatabase = new MinionDB();
-
         public static string MinionDatabasePath()
         {
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "MyMinions.db");
@@ -56,13 +54,26 @@ namespace MyMinions.Domain
         {
             get
             {
-                return mainDatabase;
+                // Lazy static constructor
+                // http://www.yoda.arachsys.com/csharp/singleton.html
+                return Constructor.Instance;
             }
         }
 
-        protected MinionDB() : base(MinionDatabasePath())
+        private MinionDB() : base(MinionDatabasePath())
         {
             this.CreateTable<MinionDataContract>();
+        }
+
+        private class Constructor
+        {
+            internal static readonly MinionDB Instance = new MinionDB();
+
+            // Explicit static constructor to tell C# compiler
+            // not to mark type as beforefieldinit
+            static Constructor()
+            {
+            }
         }
     }
 }

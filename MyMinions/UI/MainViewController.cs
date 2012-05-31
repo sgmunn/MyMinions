@@ -32,7 +32,7 @@ namespace MyMinions.UI
             this.lifetime = new CompositeDisposable();
 
             // TODO: observe deleted events and name changes
-            this.lifetime.Add(this.context.EventBus.Subscribe<IEvent>(this.OnNextEvent));
+           // this.lifetime.Add(this.context.EventBus.Subscribe<IEvent>(this.OnNextEvent));
         }
                 
         public void Load()
