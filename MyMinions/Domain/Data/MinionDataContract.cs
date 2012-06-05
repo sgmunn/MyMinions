@@ -25,7 +25,8 @@ namespace MyMinions.Domain.Data
     using System.ComponentModel;
     using MonoKit.Data.SQLite;
     using MonoKit.Domain;
-    
+
+    [MonoTouch.Foundation.Preserve(AllMembers = true)]
     public class MinionDataContract : ISnapshot, INotifyPropertyChanged
     {
         public MinionDataContract()

@@ -12,9 +12,8 @@ using MonoKit.Reactive;
 using MonoKit.Reactive.Disposables;
 using MyMinions.Domain;
 using MonoKit.Domain.Commands;
-using MonoKit.Domain.Events;
-using MonoKit.Tasks;
-using System.Threading.Tasks;
+using MonoKit;
+using MonoKit.Reactive.Linq;
 
 namespace MyMinions.UI
 {
@@ -49,7 +48,7 @@ namespace MyMinions.UI
             // todo: implement .Where so that we can subscribe to the events we want to know about
             IObservable<IReadModel> bus = this.context.EventBus;
             this.lifetime.Add(bus.ObserveOnMainThread().Subscribe<IReadModel>(this.OnNextReadModel));
-            
+
             if (this.Source.Count == 0)
             {
                 new TableViewSection(this.Source) { AllowMoveItems = false };
@@ -104,11 +103,13 @@ namespace MyMinions.UI
 
             // create a task to load the minions.  Observe the results of the task on
             // the main thread during which we'll load them into the table and 
-            // enable the edit button.
-            var subscription = new Task<IEnumerable<MinionDataContract>>(() =>
+            // enable the edit button
+            var subscription = Observable.Start<IEnumerable<MinionDataContract>>(
+                () =>
                 {
                     return this.repository.GetAll().OrderBy(x => x.MinionName);
-                }).AsObservable().ObserveOnMainThread().Subscribe((minions) =>
+                })
+                .ObserveOnMainThread().Subscribe((minions) =>
                     {
                         this.NavigationItem.RightBarButtonItem.Enabled = false;
                         this.LoadMinions(minions);
@@ -206,11 +207,11 @@ namespace MyMinions.UI
 
         private void SaveMinionAsync(MinionDataContract minion)
         {
-            var subscription = new Task
-                (() => 
+            var subscription = Observable.Start(
+                () => 
                  {
                     this.commandExecutor.Execute(new ChangeNameCommand { AggregateId = minion.Id, Name = minion.MinionName, });
-                }).AsObservable<Unit>().Subscribe();
+                }).Subscribe();
 
             this.lifetime.Add(subscription);
         }
@@ -232,12 +233,12 @@ namespace MyMinions.UI
         
         private void Add(object sender, EventArgs args)
         {
-            var subscription = new Task
-                (() => 
+            var subscription = Observable.Start(
+                () => 
                  {
                     var id = Guid.NewGuid();
                     this.commandExecutor.Execute(new CreateCommand { AggregateId = id, });
-                }).AsObservable<Unit>().Subscribe();
+                }).Subscribe();
 
             this.lifetime.Add(subscription);
 
