@@ -27,8 +27,6 @@ namespace MyMinions.UI
 
         private readonly IDomainCommandExecutor<Minion> commandExecutor;
 
-        private MinionDataContract editingMinion;
-
         public SettingsViewController(IDomainContext context, IMinionRepository repository) : base(UITableViewStyle.Plain, new SettingsSource())
         {
             this.context = context;
@@ -76,13 +74,6 @@ namespace MyMinions.UI
         public override void ViewDidAppear(bool animated)
         {
             base.ViewDidAppear(animated);
-
-            if (this.editingMinion != null)
-            {
-                this.SaveMinionAsync(this.editingMinion);
-            }
-
-            this.editingMinion = null;
         }
 
         public override void ViewDidDisappear(bool animated)
@@ -188,37 +179,14 @@ namespace MyMinions.UI
 
         private void NavigateToMinion(MinionDataContract minion)
         {
-            this.editingMinion = minion;
+            var editor = new RecipientEditViewController(this.commandExecutor);
+            editor.Load(minion);
 
-            // if this was a specific controller class we could intercept viewDidDisappear to trigger saves
-            // in this case we'll remember which one we're editing and do the save on the view did appear
-            var controller = new TableViewController(UITableViewStyle.Grouped) ;
-            controller.NavigationItem.Title = minion.MinionName ?? "New Minion";
-
-            var section1 = new TableViewSection(controller.Source);
-            
-            section1.Header = "Minion Name";
-            section1.BeginUpdate();
-            section1.Add(new TextInputElement(minion, null, new Binding("MinionName")) { Placeholder = "Name", CanEdit = (_) => false });
-            section1.EndUpdate();
-            
-            this.NavigationController.PushViewController(controller, true);
-        }
-
-        private void SaveMinionAsync(MinionDataContract minion)
-        {
-            var subscription = Observable.Start(
-                () => 
-                 {
-                    this.commandExecutor.Execute(new ChangeNameCommand { AggregateId = minion.Id, Name = minion.MinionName, });
-                }).Subscribe();
-
-            this.lifetime.Add(subscription);
+            this.NavigationController.PushViewController(editor, true);
         }
 
         private void Edit(object sender, EventArgs args)
         {
-            GC.Collect();
             this.NavigationItem.RightBarButtonItem = new UIBarButtonItem(UIBarButtonSystemItem.Done, this.DoneEdit);
             this.NavigationItem.LeftBarButtonItem = new UIBarButtonItem(UIBarButtonSystemItem.Add, this.Add);
             this.TableView.SetEditing(true, true);

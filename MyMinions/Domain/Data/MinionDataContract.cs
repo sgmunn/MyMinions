@@ -45,6 +45,8 @@ namespace MyMinions.Domain.Data
 
         public decimal CurrentBalance { get; set; }
 
+        public decimal WeeklyAllowance { get; set; }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         public void NotifyPropertiesChanged()

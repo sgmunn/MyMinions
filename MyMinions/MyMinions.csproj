@@ -112,6 +112,7 @@
     <Compile Include="Domain\Data\TransactionDataContract.cs" />
     <Compile Include="UI\SettingsViewController.cs" />
     <Compile Include="Domain\Data\MinionRepository.cs" />
+    <Compile Include="UI\RecipientEditViewController.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
