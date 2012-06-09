@@ -76,7 +76,11 @@ namespace MyMinions.UI
             var subscription = Observable.Start(
                 () => 
                  {
-                    this.commandExecutor.Execute(new ChangeNameCommand { AggregateId = this.minion.Id, Name = this.minion.MinionName, });
+                    this.commandExecutor.Execute(
+                        new MonoKit.Domain.ICommand [] {
+                            new ChangeNameCommand { AggregateId = this.minion.Id, Name = this.minion.MinionName, },
+                            new ChangeAllowanceCommand { AggregateId = this.minion.Id, Allowance = this.minion.WeeklyAllowance, }
+                        });
                 }).Subscribe();
         }
     }

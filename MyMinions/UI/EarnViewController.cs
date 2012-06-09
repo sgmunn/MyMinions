@@ -1,58 +1,49 @@
-using System;
-using System.Drawing;
-
-using MonoTouch.Foundation;
-using MonoTouch.UIKit;
-using MyMinions.Domain.Data;
-using MonoKit.UI;
-using MonoKit.DataBinding;
-using System.Threading;
-using System.Linq;
-
-namespace RewardSquirrel
+namespace MyMinions
 {
+    using System;
+    using System.Drawing;
+    
+    using MonoTouch.Foundation;
+    using MonoTouch.UIKit;
+    using MonoKit;
+    using MonoKit.Domain;
+    using MyMinions.Domain;
+    using MonoKit.Reactive.Linq;
+    using MonoKit.UI.Controls;
+    
     public partial class EarnViewController : UIViewController
     {
-        private TableViewSource tableSource;
-        private TableViewSection<MinionTaskDataContract> section;
-        private int recipientId;
+        private readonly IDomainContext context;
 
-        public EarnViewController(int recipientId) : base ("EarnViewController", null)
+        private readonly Guid minionId;
+
+        private UIDateField dateField;
+
+        private decimal defaultAllowance;
+
+        public EarnViewController(IDomainContext context, Guid minionId, decimal defaultAllowance) : base ("EarnViewController", null)
         {
-            this.tableSource = new TableViewSource();
-            this.recipientId = recipientId;
+            this.context = context;
+            this.minionId = minionId;
+            this.defaultAllowance = defaultAllowance;
         }
-        
-        public override void DidReceiveMemoryWarning()
-        {
-            // Releases the view if it doesn't have a superview.
-            base.DidReceiveMemoryWarning();
-            
-            // Release any cached data, images, etc that aren't in use.
-        }
-        
+
         public override void ViewDidLoad()
         {
             base.ViewDidLoad();
-            
-            // Perform any additional setup after loading the view, typically from a nib.
-            if (this.section == null)
-            {
-                this.section = new TableViewSection<MinionTaskDataContract>(this.tableSource);
-                this.section.Header = "Header";
-            }
-            
-            this.tableSource.TableView = this.tableView;
-            this.LoadTasks();
+
+            this.amount.Text = string.Format("{0:0.00}", this.defaultAllowance);
+            this.description.Text = "Weekly Allowance";
+
+            // todo: date field border for when not inside a table view cell
+            this.dateField = new UIDateField(new RectangleF(20, 172, 280, 31));
+
+            this.View.AddSubview(this.dateField);
+            this.amount.KeyboardType = UIKeyboardType.DecimalPad;
+
+            this.description.BecomeFirstResponder();
         }
                 
-        public override void ViewWillUnload()
-        {
-            this.tableSource.TableView = null;
-            this.tableSource.ClearData();
-            base.ViewWillUnload();
-        }
-
         public override void ViewDidUnload()
         {
             base.ViewDidUnload();
@@ -63,41 +54,45 @@ namespace RewardSquirrel
             // e.g. myOutlet.Dispose (); myOutlet = null;
             
             ReleaseDesignerOutlets();
+
+            if (this.dateField != null)
+            {
+                this.dateField.Dispose();
+                this.dateField = null;
+            }
         }
-        
-        public override bool ShouldAutorotateToInterfaceOrientation(UIInterfaceOrientation toInterfaceOrientation)
-        {
-            // Return true for supported orientations
-            return (toInterfaceOrientation != UIInterfaceOrientation.PortraitUpsideDown);
-        }
-        
-        partial void cancelButtonClicked(MonoTouch.Foundation.NSObject sender)
+
+        partial void cancelButtonClicked(NSObject sender)
         {
             this.DismissModalViewControllerAnimated(true);
         }
-                
-        private void LoadTasks()
+
+        partial void earnButtonClicked(NSObject sender)
         {
-            var loadThread = new Thread(this.LoadTasksAsync);
-            loadThread.Start();
-        }
-        
-        private void LoadTasksAsync()
-        {
-            // grouped or with headings ??
-            
-//            var repo = RewardDatabase.Main.NewRepository<RecipientTask>();
-//            using (repo)
-//            {
-//                var startDate = DataLogic.GetStartOfWeekFromDate(DateTime.Today);
-//                var endDate = startDate.AddDays(7);
-//                var tasks = repo.GetAll().Where(x => x.RecipientId == this.recipientId && x.TaskDate >= startDate && x.TaskDate < endDate).
-//                    OrderBy(x => x.Description).OrderBy(x => x.TaskDate).ToList();
-//                
-//                this.InvokeOnMainThread(() => {
-//                    this.section.AddRange(tasks);
-//                });                 
-//            }
+            decimal amt = 0;
+            try
+            {
+                amt = Convert.ToDecimal(this.amount.Text);
+            }
+            catch
+            {
+                amt = 0; 
+            }
+
+            var subscription = Observable.Start(
+                () => 
+                 {
+                    var cmd = this.context.NewCommandExecutor<Minion>();
+                    cmd.Execute(new EarnAllowanceCommand 
+                    { 
+                        AggregateId = this.minionId, 
+                        Date = this.dateField.Date,
+                        Amount = amt, 
+                        Description = this.description.Text 
+                    });
+                }).Subscribe();
+
+            this.DismissModalViewControllerAnimated(true);
         }
     }
 }

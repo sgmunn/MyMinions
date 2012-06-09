@@ -18,13 +18,37 @@
 //  </copyright>
 //  --------------------------------------------------------------------------------------------------------------------
 // 
-using System;
+
 namespace MyMinions.Domain.Data
 {
-    public class TransactionDataContract
+    using System;
+    using MonoKit.Data.SQLite;
+    using MonoKit.Domain;
+
+    public class TransactionDataContract : IReadModel
     {
         public TransactionDataContract()
         {
+            this.Id = Guid.NewGuid();
+        }
+
+        [PrimaryKey]
+        public Guid Id { get; set; }
+
+        [Indexed]
+        public Guid MinionId { get; set; }
+
+        public DateTime TransactionDate { get; set; }
+
+        public decimal Amount { get; set; }
+
+        public string Description { get; set; }
+
+        public bool IsSpend { get; set; }
+
+        public override string ToString()
+        {
+            return string.Format("{0}, {1}", Amount, Description);
         }
     }
 }

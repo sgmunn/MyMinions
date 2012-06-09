@@ -1,24 +1,31 @@
-using System;
-using MonoTouch.Foundation;
-using MonoTouch.UIKit;
-using System.Threading;
-using System.Linq;
-using MonoKit.UI;
-using MonoKit.DataBinding;
-using MyMinions.Domain.Data;
 
 namespace MyMinions.UI
 {
-    [Register("MinionView")]
+    using System;
+    using MonoTouch.Foundation;
+    using MonoTouch.UIKit;
+    using System.Linq;
+    using MonoKit;
+    using MonoKit.UI;
+    using MyMinions.Domain.Data;
+    using MonoKit.Domain;
+    using MonoKit.Reactive.Disposables;
+    using MonoKit.Reactive.Linq;
+    using System.Collections.Generic;
+    using MonoKit.Reactive;
+
     public partial class MinionView : UIView
     {
+        private readonly CompositeDisposable lifetime;
+        private readonly TableViewSource tableSource;
+        private TableViewSection<TransactionDataContract> section;
+
         private MinionDataContract minion;
-        private TableViewSource tableSource;
- //       private TableViewSection<RecipientTask> section;
 
         public MinionView(IntPtr handle) : base(handle)
         {
-  //          this.tableSource = new TableViewSource();
+            this.lifetime = new CompositeDisposable();
+            this.tableSource = new TableViewSource();
         }
         
         public MinionDataContract Minion
@@ -30,25 +37,33 @@ namespace MyMinions.UI
             
             set
             {
-                // todo: if we bound some properties to the recipient then we don't need to hook into view changing ...
+                this.SetupTable();
+
+                if (value != this.minion)
+                {
+                    this.lifetime.Clear();
+
+                    IObservable<IReadModel> bus = this.Context.EventBus;
+                    this.lifetime.Add(bus.ObserveOnMainThread().Subscribe<IReadModel>(this.OnNextReadModel));
+                }
+
                 this.minion = value;
-                //this.minionNameLabel.Text = value.RecipientName;
-                
-                this.minionNameLabel.ClearBindings();
-                this.minionNameLabel.SetBinding("Text", this.Minion, "MinionName");
-                
-                //this.transactionsButton.SetTitle(value.CurrentBalance.ToString("C"), UIControlState.Normal);
-                //this.LoadRecipient();
+                this.MinionUpdated(value);
+                this.LoadTransactionsAsync();
             }
         }
-        
-//        public UITableView TasksTable
-//        {
-//            get
-//            {
-//                return this.currentTasksTableView;
-//            }
-//        }
+
+        public IDomainContext Context
+        {
+            get;
+            set;
+        }
+
+        public ITransactionRepository Repository
+        {
+            get;
+            set;
+        }
 
         public UIViewController Controller
         {
@@ -56,64 +71,84 @@ namespace MyMinions.UI
             set;
         }
 
-//        partial void transactionsButtonClicked(MonoTouch.Foundation.NSObject sender)
-//        {
-//            var tranactions = new TransactionsViewController(this.Recipient.RecipientId);
-//            tranactions.ModalTransitionStyle = UIModalTransitionStyle.FlipHorizontal;
-//            this.Controller.PresentViewController(tranactions, true, () => {});
-//        }
-//        
-//        partial void earnButtonClicked(MonoTouch.Foundation.NSObject sender)
-//        {
-//            var earnView = new EarnViewController(this.Recipient.RecipientId);
-//            this.Controller.PresentModalViewController(earnView, true);
-//        }
-//        
-//        partial void spendButtonClicked(NSObject sender)
-//        {
-//            var spendView = new SpendViewController(this.Recipient);
-//            
-//            this.Controller.PresentModalViewController(spendView, true);
-//            
-//            //this.transactionsButton.SetTitle(this.Recipient.CurrentBalance.ToString("C"), UIControlState.Normal);
-//        }
-//        
-//        private void LoadRecipient()
-//        {
-//            if (this.section == null)
-//            {
-//                this.section = new TableViewSection<RecipientTask>(this.tableSource);
-//            
-//                this.tableSource.TableView = this.TasksTable;
-//                this.LoadTasks();
-//            }
-//
-//        }
-//        
-//                
-//        private void LoadTasks()
-//        {
-//            var loadThread = new Thread(this.LoadTasksAsync);
-//            loadThread.Start();
-//        }
-//        
-//        private void LoadTasksAsync()
-//        {
-//            DataLogic.EnsureTasksForDate(DateTime.Today, this.recipient);
-//            
-//            var repo = RewardDatabase.Main.NewRepository<RecipientTask>();
-//            using (repo)
-//            {
-//                var date = DateTime.Today;
-//                var tasks = repo.GetAll().Where(x => x.RecipientId == this.Recipient.RecipientId && x.TaskDate == date).
-//                    OrderBy(x => x.Description).ToList();
-//                
-//                this.InvokeOnMainThread(() => {
-//                    this.section.AddRange(tasks);
-//                });                 
-//            }
-//        }
+        partial void earnButtonClick(NSObject sender)
+        {
+            var earnView = new EarnViewController(this.Context, this.Minion.Id, this.Minion.WeeklyAllowance);
+            this.Controller.PresentModalViewController(earnView, true);
+        }
 
+        partial void spendButtonClick(NSObject sender)
+        {
+            var spendView = new SpendViewController(this.Context, this.Minion.Id);
+            this.Controller.PresentModalViewController(spendView, true);
+        }
+
+        private void OnNextReadModel(IReadModel readModel)
+        {
+            if (readModel is TransactionDataContract)
+            {
+                this.TransactionUpdated((TransactionDataContract)readModel);
+            }
+
+            if (readModel is MinionDataContract)
+            {
+                this.MinionUpdated((MinionDataContract)readModel);
+            }
+        }
+
+        private void TransactionUpdated(TransactionDataContract transaction)
+        {
+            this.section.Insert(0, transaction);
+        }
+
+        private void MinionUpdated(MinionDataContract minion)
+        {
+            if (minion.Id == this.Minion.Id)
+            {
+                // by-pass property, bit of a hack
+                this.minion = minion;
+                this.minionNameLabel.Text = minion.MinionName;
+                this.transactionButton.SetTitle(string.Format("{0}", minion.CurrentBalance), UIControlState.Normal);
+            }
+        }
+
+        private void SetupTable()
+        {
+            if (this.section == null)
+            {
+                this.section = new TableViewSection<TransactionDataContract>(this.tableSource);
+            
+                this.tableSource.TableView = this.transactionTable;
+            }
+        }
+
+        private void LoadTransactionsAsync()
+        {
+            var subscription = Observable.Start<IEnumerable<TransactionDataContract>>(
+                () =>
+                {
+                    return this.Repository.GetAllForMinion(this.Minion.Id).OrderByDescending(x => x.TransactionDate);
+                })
+                .ObserveOnMainThread().Subscribe((transactions) =>
+                    {
+                        this.LoadTransactions(transactions);
+                    });
+
+            // make sure to add to lifetime so that if we navigate away 
+            this.lifetime.Add(subscription);
+        }
+
+        private void LoadTransactions(IEnumerable<TransactionDataContract> transactions)
+        {
+            this.section.BeginUpdate();
+            this.section.Clear();
+            foreach (var transaction in transactions)
+            {
+                this.section.Add(transaction);
+            }
+                
+            this.section.EndUpdate();
+        }
     }
 }
 

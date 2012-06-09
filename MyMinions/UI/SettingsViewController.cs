@@ -147,15 +147,7 @@ namespace MyMinions.UI
 
             if (element != null)
             {
-                var current = (MinionDataContract)element.Data;
-                current.MinionName = minion.MinionName;
-                // update bindings because our data contract doesn't support INotifyPropertyChanged
-                //var bindings = element.GetBindingExpressions("Text");
-                //foreach (var binding in bindings)
-                //{
-                //    binding.UpdateTarget();
-                //}
-                current.NotifyPropertiesChanged();
+                element.Data = minion;
             }
             else
             {

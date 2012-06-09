@@ -19,16 +19,18 @@ namespace MyMinions.UI
     {
         private readonly IDomainContext context;
         private readonly IMinionRepository repository;
+        private readonly ITransactionRepository transactionRepository;
         private readonly CompositeDisposable lifetime;
 
         private ScrollingPageView pagedView;
         private List<MinionDataContract> minions;
         private int currentPage;
 
-        public MainViewController(IDomainContext context, IMinionRepository repository) : base ("MainViewController", null)
+        public MainViewController(IDomainContext context, IMinionRepository repository, ITransactionRepository transactionRepository) : base ("MainViewController", null)
         {
             this.context = context;
             this.repository = repository;
+            this.transactionRepository = transactionRepository;
             this.lifetime = new CompositeDisposable();
 
             // TODO: observe deleted events and name changes
@@ -70,6 +72,9 @@ namespace MyMinions.UI
             UIView.SetAnimationDuration(0.15f);
             this.pagedView.Alpha = 1f;
             UIView.CommitAnimations();
+
+            IObservable<IReadModel> bus = this.context.EventBus;
+            this.lifetime.Add(bus.ObserveOnMainThread().Subscribe<IReadModel>(this.OnNextReadModel));
         }
         
         public override void ViewDidUnload()
@@ -119,17 +124,40 @@ namespace MyMinions.UI
             var settings = new SettingsViewController(this.context, this.repository);
             this.NavigationController.PushViewController(settings, true);
         }
-
-        private void OnNextEvent(IEvent @event)
+        
+        private void OnNextReadModel(IReadModel readModel)
         {
-            // I think I'd prefer to have notification of repository changes instead, perhaps event the thing
-            // that actually changed so I don't have to reload it
-            if (@event.AggregateTypeId == Minion.AggregateTypeId)
+            if (readModel is MinionDataContract)
             {
-                if (@event is NameChangedEvent)
-                {
+                this.MinionUpdated((MinionDataContract)readModel);
+            }
+        }
 
+        private void MinionUpdated(MinionDataContract minion)
+        {
+            bool found = false;
+            for (int i = 0; i < this.minions.Count; i++) {
+                if (this.minions[i].Id == minion.Id)
+                {
+                    if (minion.Deleted)
+                    {
+                        this.minions.RemoveAt(i);
+                        this.pagedView.ReloadPages();
+                    }
+                    else
+                    {
+                        this.minions[i] = minion;
+                    }
+
+                    found = true;
+                    break;
                 }
+            }
+
+            if (!found)
+            {
+                this.minions.Add(minion);
+                this.pagedView.ReloadPages();
             }
         }
                   
@@ -153,6 +181,8 @@ namespace MyMinions.UI
             var view = this.LoadViewFromNib<MinionView>();
             view.Frame = frame;
             view.Controller = this;
+            view.Context = this.context;
+            view.Repository = this.transactionRepository;
             return view;
         }
 

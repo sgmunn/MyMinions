@@ -6,7 +6,7 @@
 //
 using MonoTouch.Foundation;
 
-namespace RewardSquirrel
+namespace MyMinions
 {
 	[Register ("SpendViewController")]
 	partial class SpendViewController
@@ -16,12 +16,6 @@ namespace RewardSquirrel
 
 		[Outlet]
 		MonoTouch.UIKit.UITextField amount { get; set; }
-
-		[Outlet]
-		MonoTouch.UIKit.UITextField date { get; set; }
-
-		[Outlet]
-		MonoTouch.UIKit.UITextField datePlaceholder { get; set; }
 
 		[Action ("doneButtonClicked:")]
 		partial void doneButtonClicked (MonoTouch.Foundation.NSObject sender);
@@ -39,16 +33,6 @@ namespace RewardSquirrel
 			if (amount != null) {
 				amount.Dispose ();
 				amount = null;
-			}
-
-			if (date != null) {
-				date.Dispose ();
-				date = null;
-			}
-
-			if (datePlaceholder != null) {
-				datePlaceholder.Dispose ();
-				datePlaceholder = null;
 			}
 		}
 	}

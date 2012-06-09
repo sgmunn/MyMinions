@@ -71,7 +71,11 @@ namespace MyMinions
 
             this.InvokeOnMainThread(() =>
             {
-                this.mainViewController = new MainViewController(this.context, new MinionRepository(MinionDB.Main));
+                this.mainViewController = new MainViewController(
+                    this.context, 
+                    new MinionRepository(MinionDB.Main),
+                    new TransactionRepository(MinionDB.Main)
+                    );
                 this.navController.PushViewController(this.mainViewController, false);
 
                 this.mainViewController.Load();

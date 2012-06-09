@@ -8,19 +8,39 @@ using MonoTouch.Foundation;
 
 namespace MyMinions.UI
 {
+	[Register ("MinionView")]
 	partial class MinionView
 	{
 		[Outlet]
 		MonoTouch.UIKit.UILabel minionNameLabel { get; set; }
 
-		[Action ("spendButtonClicked:")]
-		partial void spendButtonClicked (MonoTouch.Foundation.NSObject sender);
+		[Outlet]
+		MonoTouch.UIKit.UITableView transactionTable { get; set; }
+
+		[Outlet]
+		MonoTouch.UIKit.UIButton transactionButton { get; set; }
+
+		[Action ("earnButtonClick:")]
+		partial void earnButtonClick (MonoTouch.Foundation.NSObject sender);
+
+		[Action ("spendButtonClick:")]
+		partial void spendButtonClick (MonoTouch.Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{
 			if (minionNameLabel != null) {
 				minionNameLabel.Dispose ();
 				minionNameLabel = null;
+			}
+
+			if (transactionTable != null) {
+				transactionTable.Dispose ();
+				transactionTable = null;
+			}
+
+			if (transactionButton != null) {
+				transactionButton.Dispose ();
+				transactionButton = null;
 			}
 		}
 	}

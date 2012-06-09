@@ -6,7 +6,7 @@
 //
 using MonoTouch.Foundation;
 
-namespace RewardSquirrel
+namespace MyMinions
 {
 	[Register ("EarnViewController")]
 	partial class EarnViewController
@@ -16,12 +16,6 @@ namespace RewardSquirrel
 
 		[Outlet]
 		MonoTouch.UIKit.UITextField description { get; set; }
-
-		[Outlet]
-		MonoTouch.UIKit.UITextField date { get; set; }
-
-		[Outlet]
-		MonoTouch.UIKit.UITableView tableView { get; set; }
 
 		[Action ("cancelButtonClicked:")]
 		partial void cancelButtonClicked (MonoTouch.Foundation.NSObject sender);
@@ -39,16 +33,6 @@ namespace RewardSquirrel
 			if (description != null) {
 				description.Dispose ();
 				description = null;
-			}
-
-			if (date != null) {
-				date.Dispose ();
-				date = null;
-			}
-
-			if (tableView != null) {
-				tableView.Dispose ();
-				tableView = null;
 			}
 		}
 	}

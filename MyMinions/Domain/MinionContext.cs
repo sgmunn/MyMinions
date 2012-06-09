@@ -40,6 +40,16 @@ namespace MyMinions.Domain
         {
             this.RegisterSnapshot<Minion>(c => new SnapshotRepository<MinionDataContract>(this.Connection));
             // todo: register a builder to delete deleted minions
+
+            this.RegisterBuilder<Minion>((c) =>
+            {
+                return new TransactionReadModelBuilder(new TransactionRepository(this.Connection));
+            });
+
+            this.RegisterBuilder<Minion>((c) =>
+            {
+                return new MinionReadModelBuilder(new MinionRepository(this.Connection));
+            });
         }
     }
 
@@ -63,6 +73,7 @@ namespace MyMinions.Domain
         private MinionDB() : base(MinionDatabasePath())
         {
             this.CreateTable<MinionDataContract>();
+            this.CreateTable<TransactionDataContract>();
         }
 
         private class Constructor

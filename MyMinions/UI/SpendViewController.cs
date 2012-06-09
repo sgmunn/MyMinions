@@ -1,40 +1,25 @@
-using System;
-using System.Drawing;
 
-using MonoTouch.Foundation;
-using MonoTouch.UIKit;
-using MonoTouch.ObjCRuntime;
-using MyMinions.Domain.Data;
-
-namespace RewardSquirrel
+namespace MyMinions
 {
-    [Register("UITextFieldNoPaste")]
-    public class UITextFieldNoPaste : UITextField
-    {
-        public UITextFieldNoPaste(IntPtr handle): base(handle)
-        {
-            
-        }
-        
-        public override bool CanPerform(MonoTouch.ObjCRuntime.Selector action, NSObject withSender)
-        {
-            if (action == new Selector("paste:"))
-            {
-                return false;
-            }
-            
-            return base.CanPerform(action, withSender);
-        }
-    }
-    
+    using System;
+    using System.Drawing;
+    using MonoTouch.UIKit;
+    using MonoKit;
+    using MonoKit.Domain;
+    using MyMinions.Domain;
+    using MonoKit.UI.Controls;
+    using MonoKit.Reactive.Linq;
+
     public partial class SpendViewController : UIViewController
     {
-        private MinionDataContract recipient;
-        private DateTime transactionDate;
-        
-        public SpendViewController(MinionDataContract recipient) : base ("SpendViewController", null)
+        private readonly IDomainContext context;
+        private readonly Guid minionId;
+        private UIDateField dateField;
+
+        public SpendViewController(IDomainContext context, Guid minionId) : base ("SpendViewController", null)
         {
-            this.recipient = recipient;
+            this.context = context;
+            this.minionId = minionId;
         }
         
         public override void DidReceiveMemoryWarning()
@@ -48,30 +33,14 @@ namespace RewardSquirrel
         public override void ViewDidLoad()
         {
             base.ViewDidLoad();
-            
-            this.amount.KeyboardType = UIKeyboardType.DecimalPad;
-            
-            // Perform any additional setup after loading the view, typically from a nib.
-            
-            this.transactionDate = DateTime.Today;
-            
-            var datePicker = new UIDatePicker();
-            datePicker.Mode = UIDatePickerMode.Date;
-            datePicker.TimeZone = NSTimeZone.FromAbbreviation("GMT");
-            datePicker.Date = DateTime.SpecifyKind(this.transactionDate, DateTimeKind.Utc);
-            
-            datePicker.ValueChanged += (sender, e) => 
-            {
-                this.transactionDate = DateTime.SpecifyKind(datePicker.Date, DateTimeKind.Unspecified);
-                this.datePlaceholder.Text = this.transactionDate.ToString("D");
-            }
-            ;
-            
-            this.date.InputView = datePicker;
-            this.amount.BecomeFirstResponder();
 
-            var dt = DateTime.SpecifyKind(datePicker.Date, DateTimeKind.Unspecified);
-            this.datePlaceholder.Text = dt.ToString("D");
+            // todo: date field border for when not inside a table view cell
+            this.dateField = new UIDateField(new RectangleF(20, 172, 280, 31));
+
+            this.View.AddSubview(this.dateField);
+            this.amount.KeyboardType = UIKeyboardType.DecimalPad;
+
+            this.amount.BecomeFirstResponder();
         }
         
         public override void ViewDidUnload()
@@ -84,49 +53,39 @@ namespace RewardSquirrel
             // e.g. myOutlet.Dispose (); myOutlet = null;
             
             ReleaseDesignerOutlets();
+
+            if (this.dateField != null)
+            {
+                this.dateField.Dispose();
+                this.dateField = null;
+            }
         }
-        
-        public override bool ShouldAutorotateToInterfaceOrientation(UIInterfaceOrientation toInterfaceOrientation)
-        {
-            // Return true for supported orientations
-            return (toInterfaceOrientation != UIInterfaceOrientation.PortraitUpsideDown);
-        }
-        
+
         partial void doneButtonClicked(MonoTouch.Foundation.NSObject sender)
         {
-            // todo: support IEditableObject
-//            var oldBalance = this.recipient.CurrentBalance;
-//            
-//            RewardDatabase.Main.BeginTransaction();
-//            try
-//            {
-//                var repo = RewardDatabase.Main.NewRepository<Transaction>();
-//                using (repo)
-//                {
-//                    var transaction = new Transaction();
-//                    transaction.RecipientId = this.recipient.RecipientId;
-//                    transaction.Amount = Convert.ToDecimal(this.amount.Text);
-//                    transaction.Description = this.description.Text;
-//                    transaction.TransactionDate = this.transactionDate;
-//                    
-//                    repo.Insert(transaction);
-//                    
-//                    this.recipient.CurrentBalance -= transaction.Amount;
-//                    
-//                    using (var recipientRepo = RewardDatabase.Main.NewRepository<Recipient>())
-//                    {
-//                        recipientRepo.Update(this.recipient);
-//                    }
-//                }
-//                
-//                RewardDatabase.Main.Commit();
-//            }
-//            catch
-//            {
-//                this.recipient.CurrentBalance = oldBalance;
-//                RewardDatabase.Main.Rollback();
-//            }
-            
+            decimal amt = 0;
+            try
+            {
+                amt = Convert.ToDecimal(this.amount.Text);
+            }
+            catch
+            {
+                amt = 0; 
+            }
+
+            var subscription = Observable.Start(
+                () => 
+                 {
+                    var cmd = this.context.NewCommandExecutor<Minion>();
+                    cmd.Execute(new SpendAllowanceCommand 
+                    { 
+                        AggregateId = this.minionId, 
+                        Date = this.dateField.Date,
+                        Amount = amt, 
+                        Description = this.description.Text 
+                    });
+                }).Subscribe();
+
             this.DismissModalViewControllerAnimated(true);
         }
         

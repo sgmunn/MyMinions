@@ -42,9 +42,37 @@ namespace MyMinions.Domain.Data
         public override IEnumerable<MinionDataContract> GetAll()
         {
             // override to exclude deleted items
-
+            return base.GetAll();
             // SQLite cannot compile '!'
-            return GetSync(() => this.Connection.Table<MinionDataContract>().Where(x => x.Deleted == false || x.Deleted == null).AsEnumerable());
+            //return GetSync(() => this.Connection.Table<MinionDataContract>().Where(x => x.Deleted == false || x.Deleted == null).AsEnumerable());
+        }
+    }
+
+    public interface ITransactionRepository : IRepository<TransactionDataContract>
+    {
+        IEnumerable<TransactionDataContract> GetAllForMinion(Guid id);
+        void DeleteAllForMinion(Guid id);
+    }
+
+    public class TransactionRepository : SQLiteRepository<TransactionDataContract>, ITransactionRepository
+    {
+        public TransactionRepository(SQLiteConnection connection) : base(connection)
+        {
+        }
+
+        public IEnumerable<TransactionDataContract> GetAllForMinion(Guid id)
+        {
+            //return this.GetAll();
+
+            return GetSync(() => 
+               this.Connection.Table<TransactionDataContract>().Where(x => x.MinionId == id).AsEnumerable());
+        }
+
+        public void DeleteAllForMinion(Guid id)
+        {
+            DoSync(() =>
+                   this.Connection.Execute("delete from TransactionDataContract where MinionId = ?", id)
+                   );
         }
     }
 }

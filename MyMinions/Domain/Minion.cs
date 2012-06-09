@@ -23,6 +23,7 @@ using MonoKit.Domain;
 using MyMinions.Domain.Data;
 using MonoKit.Domain.Commands;
 using MonoKit.Domain.Events;
+using MonoKit.Domain.Data;
 
 
 namespace MyMinions.Domain
@@ -45,6 +46,16 @@ namespace MyMinions.Domain
             this.InternalState.MinionName = @event.Name;
         }
 
+        public void Execute(ChangeAllowanceCommand command)
+        {
+            this.NewEvent(new AllowanceChangedEvent { Allowance = command.Allowance, });
+        }
+
+        public void Apply(AllowanceChangedEvent @event)
+        {
+            this.InternalState.WeeklyAllowance = Math.Round(@event.Allowance, MidpointRounding.AwayFromZero);
+        }
+
         public void Execute(DeleteCommand command)
         {
             this.NewEvent(new DeletedEvent());
@@ -53,6 +64,36 @@ namespace MyMinions.Domain
         public void Apply(DeletedEvent @event)
         {
             this.InternalState.Deleted = true;
+        }
+
+        public void Execute(EarnAllowanceCommand command)
+        {
+            this.NewEvent(new AllowanceEarntEvent
+            {
+                Amount = command.Amount,
+                Date = command.Date,
+                Description = command.Description,
+            });
+        }
+
+        public void Apply(AllowanceEarntEvent @event)
+        {
+            this.InternalState.CurrentBalance += @event.Amount;
+        }
+
+        public void Execute(SpendAllowanceCommand command)
+        {
+            this.NewEvent(new AllowanceSpentEvent
+            {
+                Amount = command.Amount,
+                Date = command.Date,
+                Description = command.Description,
+            });
+        }
+
+        public void Apply(AllowanceSpentEvent @event)
+        {
+            this.InternalState.CurrentBalance -= @event.Amount;
         }
     }
 
@@ -64,6 +105,115 @@ namespace MyMinions.Domain
     public class NameChangedEvent : EventBase
     {
         public string Name { get; set; }
+    }
+
+    public class ChangeAllowanceCommand : CommandBase
+    {
+        public decimal Allowance { get; set; }
+    }
+
+    public class AllowanceChangedEvent : EventBase
+    {
+        public decimal Allowance { get; set; }
+    }
+
+    public class EarnAllowanceCommand : CommandBase
+    {
+        public decimal Amount { get; set; }
+        public DateTime Date { get; set; }
+        public string Description { get; set; }
+    }
+
+    public class AllowanceEarntEvent : EventBase
+    {
+        public decimal Amount { get; set; }
+        public DateTime Date { get; set; }
+        public string Description { get; set; }
+    }
+
+    public class SpendAllowanceCommand : CommandBase
+    {
+        public decimal Amount { get; set; }
+        public DateTime Date { get; set; }
+        public string Description { get; set; }
+    }
+
+    public class AllowanceSpentEvent : EventBase
+    {
+        public decimal Amount { get; set; }
+        public DateTime Date { get; set; }
+        public string Description { get; set; }
+    }
+
+    public class MinionReadModelBuilder : ReadModelBuilder
+    {
+        private readonly IMinionRepository repository;
+
+        public MinionReadModelBuilder(IMinionRepository repository)
+        {
+            this.repository = repository;
+        }
+
+        public void Handle(DeletedEvent @event)
+        {
+            // todo: delete notifications
+//            this.SaveReadModel();
+            this.repository.DeleteId(@event.AggregateId);
+        }
+
+        protected override void DoSaveReadModel(IReadModel readModel)
+        {
+            //throw new System.NotImplementedException();
+        }
+    }
+
+    public class TransactionReadModelBuilder : ReadModelBuilder
+    {
+        private readonly ITransactionRepository repository;
+
+        public TransactionReadModelBuilder(ITransactionRepository repository)
+        {
+            this.repository = repository;
+        }
+
+        public void Handle(DeletedEvent @event)
+        {
+            // todo: delete notifications
+            this.repository.DeleteAllForMinion(@event.AggregateId);
+        }
+
+        public void Handle(AllowanceEarntEvent @event)
+        {
+            var trans = new TransactionDataContract
+            {
+                IsSpend = false,
+                Amount = @event.Amount,
+                Description = @event.Description,
+                MinionId = @event.AggregateId,
+                TransactionDate = @event.Date,
+            };
+
+            this.SaveReadModel(trans);
+        }
+
+        public void Handle(AllowanceSpentEvent @event)
+        {
+            var trans = new TransactionDataContract
+            {
+                IsSpend = true,
+                Amount = @event.Amount,
+                Description = @event.Description,
+                MinionId = @event.AggregateId,
+                TransactionDate = @event.Date,
+            };
+
+            this.SaveReadModel(trans);
+        }
+
+        protected override void DoSaveReadModel(IReadModel readModel)
+        {
+            this.repository.Save((TransactionDataContract)readModel);
+        }
     }
 }
 

@@ -27,7 +27,7 @@ namespace MyMinions.Domain.Data
     using MonoKit.Domain;
 
     [MonoTouch.Foundation.Preserve(AllMembers = true)]
-    public class MinionDataContract : ISnapshot, INotifyPropertyChanged
+    public class MinionDataContract : ISnapshot
     {
         public MinionDataContract()
         {
@@ -46,22 +46,6 @@ namespace MyMinions.Domain.Data
         public decimal CurrentBalance { get; set; }
 
         public decimal WeeklyAllowance { get; set; }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public void NotifyPropertiesChanged()
-        {
-            this.OnPropertyChanged(string.Empty);
-        }
-
-        protected void OnPropertyChanged(string propertyName)
-        {
-            var handler = this.PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
     }
 }
 

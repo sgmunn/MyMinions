@@ -18,9 +18,11 @@
 //  </copyright>
 //  --------------------------------------------------------------------------------------------------------------------
 // 
-using System;
 namespace MyMinions.Domain.Data
 {
+    using System;
+
+    // todo: v2. implement tasks part
     public class MinionTaskDataContract
     {
         public MinionTaskDataContract()
