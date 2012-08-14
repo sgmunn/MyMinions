@@ -17,6 +17,9 @@ namespace MyMinions
 		[Outlet]
 		MonoTouch.UIKit.UITextField description { get; set; }
 
+		[Outlet]
+		MonoTouch.UIKit.UILabel testLabel { get; set; }
+
 		[Action ("cancelButtonClicked:")]
 		partial void cancelButtonClicked (MonoTouch.Foundation.NSObject sender);
 
@@ -33,6 +36,11 @@ namespace MyMinions
 			if (description != null) {
 				description.Dispose ();
 				description = null;
+			}
+
+			if (testLabel != null) {
+				testLabel.Dispose ();
+				testLabel = null;
 			}
 		}
 	}

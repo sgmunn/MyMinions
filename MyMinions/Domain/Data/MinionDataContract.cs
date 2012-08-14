@@ -34,8 +34,21 @@ namespace MyMinions.Domain.Data
             this.MinionName = "New Minion";
         }
         
+        Identity IReadModel.Id { get; set; }
+
         [PrimaryKey]
-        public Guid Id { get; set; }
+        public Guid Id 
+        {
+            get
+            {
+                return ((IReadModel)this).Id;
+            }
+
+            set 
+            {
+                ((IReadModel)this).Id = (MinionId)value;
+            }
+        }
 
         public int Version { get; set; }
 
@@ -43,9 +56,94 @@ namespace MyMinions.Domain.Data
 
         public string MinionName { get; set; }
 
-        public decimal CurrentBalance { get; set; }
+        public decimal CashBalance { get; set; }
+
+        public decimal StashedBalance { get; set; }
 
         public decimal WeeklyAllowance { get; set; }
+    }
+
+    [MonoTouch.Foundation.Preserve(AllMembers = true)]
+    public class ScheduledDeedDataContract : IReadModel
+    {
+        public ScheduledDeedDataContract()
+        {
+            this.Id = Guid.NewGuid();
+            this.Description = "New Deed";
+        }
+        
+        Identity IReadModel.Id { get; set; }
+
+        [PrimaryKey]
+        public Guid Id 
+        {
+            get
+            {
+                return ((IReadModel)this).Id.Id;
+            }
+
+            set 
+            {
+                ((IReadModel)this).Id = new ScheduledDeedId(value);
+            }
+        }
+
+        [Indexed]
+        public Guid MinionId { get; set; }
+        
+        [Indexed]
+        public Guid DeedId { get; set; }
+
+        public string Description { get; set; }
+
+        public bool Monday { get; set; }
+
+        public bool Tuesday { get; set; }
+
+        public bool Wednesday { get; set; }
+
+        public bool Thursday { get; set; }
+
+        public bool Friday { get; set; }
+
+        public bool Saturday { get; set; }
+
+        public bool Sunday { get; set; }
+    }
+
+    [MonoTouch.Foundation.Preserve(AllMembers = true)]
+    public class PerformedDeedDataContract : IReadModel
+    {
+        public PerformedDeedDataContract()
+        {
+            this.Id = Guid.NewGuid();
+        }
+
+        Identity IReadModel.Id { get; set; }
+
+        [PrimaryKey]
+        public Guid Id 
+        {
+            get
+            {
+                return ((IReadModel)this).Id.Id;
+            }
+
+            set 
+            {
+                ((IReadModel)this).Id = new PerformedDeedId(value);
+            }
+        }
+
+        public int Version { get; set; }
+        
+        [Indexed]
+        public Guid MinionId { get; set; }
+        
+        [Indexed]
+        public Guid DeedId { get; set; }
+
+        public DateTime Date { get; set; }
     }
 }
 

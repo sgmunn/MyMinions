@@ -13,10 +13,10 @@ namespace MyMinions
     public partial class SpendViewController : UIViewController
     {
         private readonly IDomainContext context;
-        private readonly Guid minionId;
+        private readonly MinionId minionId;
         private UIDateField dateField;
 
-        public SpendViewController(IDomainContext context, Guid minionId) : base ("SpendViewController", null)
+        public SpendViewController(IDomainContext context, MinionId minionId) : base ("SpendViewController", null)
         {
             this.context = context;
             this.minionId = minionId;

@@ -44,8 +44,8 @@ namespace MyMinions.UI
             base.ViewDidLoad();
 
             // todo: implement .Where so that we can subscribe to the events we want to know about
-            IObservable<IReadModel> bus = this.context.EventBus;
-            this.lifetime.Add(bus.ObserveOnMainThread().Subscribe<IReadModel>(this.OnNextReadModel));
+            IObservable<ReadModelChangeEvent> bus = this.context.EventBus;
+            this.lifetime.Add(bus.ObserveOnMainThread().Subscribe<ReadModelChangeEvent>(this.OnNextReadModel));
 
             if (this.Source.Count == 0)
             {
@@ -125,11 +125,11 @@ namespace MyMinions.UI
             this.NavigationItem.RightBarButtonItem.Enabled = true;
         }
 
-        private void OnNextReadModel(IReadModel readModel)
+        private void OnNextReadModel(ReadModelChangeEvent readModel)
         {
-            if (readModel is MinionDataContract)
+            if (readModel.ReadModel is MinionDataContract)
             {
-                this.MinionUpdated((MinionDataContract)readModel);
+               // this.MinionUpdated((MinionDataContract)readModel);
             }
         }
 
@@ -166,7 +166,7 @@ namespace MyMinions.UI
         private void DeleteMinion(Element element)
         {
             var minion = (MinionDataContract)element.Data;
-            this.commandExecutor.Execute(new DeleteCommand { AggregateId = minion.Id, });
+            this.commandExecutor.Execute(new DeleteCommand { AggregateId = ((IReadModel)minion).Id, });
         }
 
         private void NavigateToMinion(MinionDataContract minion)
@@ -196,7 +196,7 @@ namespace MyMinions.UI
             var subscription = Observable.Start(
                 () => 
                  {
-                    var id = Guid.NewGuid();
+                    var id = MinionId.NewId();
                     this.commandExecutor.Execute(new CreateCommand { AggregateId = id, });
                 }).Subscribe();
 

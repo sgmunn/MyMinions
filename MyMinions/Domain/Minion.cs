@@ -18,16 +18,79 @@
 //  </copyright>
 //  --------------------------------------------------------------------------------------------------------------------
 // 
-using System;
-using MonoKit.Domain;
-using MyMinions.Domain.Data;
-using MonoKit.Domain.Commands;
-using MonoKit.Domain.Events;
-using MonoKit.Domain.Data;
-
 
 namespace MyMinions.Domain
 {
+    using System;
+    using MonoKit.Domain;
+    using MyMinions.Domain.Data;
+    using MonoKit.Domain.Commands;
+    using MonoKit.Domain.Events;
+
+
+
+    public sealed class MinionId : Identity
+    {
+        public MinionId(Guid id)
+            : base(id)
+        {
+        }
+
+        public static MinionId NewId()
+        {
+            return new MinionId(Guid.NewGuid());
+        }
+
+        public static implicit operator MinionId(Guid id)
+        {
+            return new MinionId(id);
+        }
+    }
+
+    public sealed class TransactionId : Identity
+    {
+        public TransactionId(Guid id)
+            : base(id)
+        {
+        }
+
+        public static TransactionId NewId()
+        {
+            return new TransactionId(Guid.NewGuid());
+        }
+    }
+
+    public sealed class ScheduledDeedId : Identity
+    {
+        public ScheduledDeedId(Guid id)
+            : base(id)
+        {
+        }
+
+        public static ScheduledDeedId NewId()
+        {
+            return new ScheduledDeedId(Guid.NewGuid());
+        }
+    }
+
+    public sealed class PerformedDeedId : Identity
+    {
+        public PerformedDeedId(Guid id)
+            : base(id)
+        {
+        }
+
+        public static PerformedDeedId NewId()
+        {
+            return new PerformedDeedId(Guid.NewGuid());
+        }
+    }
+
+
+
+
+
+
     public class Minion : AggregateRoot<MinionDataContract>
     {
         public static string AggregateTypeId = "Minion";
@@ -41,9 +104,9 @@ namespace MyMinions.Domain
             this.NewEvent(new NameChangedEvent { Name = command.Name, });
         }
 
-        public void Apply(NameChangedEvent @event)
+        public void Apply(NameChangedEvent evt)
         {
-            this.InternalState.MinionName = @event.Name;
+            this.InternalState.MinionName = evt.Name;
         }
 
         public void Execute(ChangeAllowanceCommand command)
@@ -51,9 +114,9 @@ namespace MyMinions.Domain
             this.NewEvent(new AllowanceChangedEvent { Allowance = command.Allowance, });
         }
 
-        public void Apply(AllowanceChangedEvent @event)
+        public void Apply(AllowanceChangedEvent evt)
         {
-            this.InternalState.WeeklyAllowance = Math.Round(@event.Allowance, MidpointRounding.AwayFromZero);
+            this.InternalState.WeeklyAllowance = Math.Round(evt.Allowance, MidpointRounding.AwayFromZero);
         }
 
         public void Execute(DeleteCommand command)
@@ -61,7 +124,7 @@ namespace MyMinions.Domain
             this.NewEvent(new DeletedEvent());
         }
 
-        public void Apply(DeletedEvent @event)
+        public void Apply(DeletedEvent evt)
         {
             this.InternalState.Deleted = true;
         }
@@ -73,12 +136,14 @@ namespace MyMinions.Domain
                 Amount = command.Amount,
                 Date = command.Date,
                 Description = command.Description,
+                AsCash = command.AsCash,
             });
         }
 
-        public void Apply(AllowanceEarntEvent @event)
+        public void Apply(AllowanceEarntEvent evt)
         {
-            this.InternalState.CurrentBalance += @event.Amount;
+            this.InternalState.CashBalance += evt.AsCash ? evt.Amount : 0;
+            this.InternalState.StashedBalance += evt.AsCash ? 0 : evt.Amount;
         }
 
         public void Execute(SpendAllowanceCommand command)
@@ -88,131 +153,71 @@ namespace MyMinions.Domain
                 Amount = command.Amount,
                 Date = command.Date,
                 Description = command.Description,
+                FromCash = command.FromCash,
             });
         }
 
-        public void Apply(AllowanceSpentEvent @event)
+        public void Apply(AllowanceSpentEvent evt)
         {
-            this.InternalState.CurrentBalance -= @event.Amount;
-        }
-    }
-
-    public class ChangeNameCommand : CommandBase
-    {
-        public string Name { get; set; }
-    }
-
-    public class NameChangedEvent : EventBase
-    {
-        public string Name { get; set; }
-    }
-
-    public class ChangeAllowanceCommand : CommandBase
-    {
-        public decimal Allowance { get; set; }
-    }
-
-    public class AllowanceChangedEvent : EventBase
-    {
-        public decimal Allowance { get; set; }
-    }
-
-    public class EarnAllowanceCommand : CommandBase
-    {
-        public decimal Amount { get; set; }
-        public DateTime Date { get; set; }
-        public string Description { get; set; }
-    }
-
-    public class AllowanceEarntEvent : EventBase
-    {
-        public decimal Amount { get; set; }
-        public DateTime Date { get; set; }
-        public string Description { get; set; }
-    }
-
-    public class SpendAllowanceCommand : CommandBase
-    {
-        public decimal Amount { get; set; }
-        public DateTime Date { get; set; }
-        public string Description { get; set; }
-    }
-
-    public class AllowanceSpentEvent : EventBase
-    {
-        public decimal Amount { get; set; }
-        public DateTime Date { get; set; }
-        public string Description { get; set; }
-    }
-
-    public class MinionReadModelBuilder : ReadModelBuilder
-    {
-        private readonly IMinionRepository repository;
-
-        public MinionReadModelBuilder(IMinionRepository repository)
-        {
-            this.repository = repository;
+            this.InternalState.CashBalance -= evt.FromCash ? evt.Amount : 0;
+            this.InternalState.StashedBalance -= evt.FromCash ? 0 : evt.Amount;
         }
 
-        public void Handle(DeletedEvent @event)
+        public void Execute(ScheduleDeed command)
         {
-            // todo: delete notifications
-//            this.SaveReadModel();
-            this.repository.DeleteId(@event.AggregateId);
-        }
-
-        protected override void DoSaveReadModel(IReadModel readModel)
-        {
-            //throw new System.NotImplementedException();
-        }
-    }
-
-    public class TransactionReadModelBuilder : ReadModelBuilder
-    {
-        private readonly ITransactionRepository repository;
-
-        public TransactionReadModelBuilder(ITransactionRepository repository)
-        {
-            this.repository = repository;
-        }
-
-        public void Handle(DeletedEvent @event)
-        {
-            // todo: delete notifications
-            this.repository.DeleteAllForMinion(@event.AggregateId);
-        }
-
-        public void Handle(AllowanceEarntEvent @event)
-        {
-            var trans = new TransactionDataContract
+            this.NewEvent(new DeedScheduledEvent
             {
-                IsSpend = false,
-                Amount = @event.Amount,
-                Description = @event.Description,
-                MinionId = @event.AggregateId,
-                TransactionDate = @event.Date,
-            };
-
-            this.SaveReadModel(trans);
+                DeedId = command.DeedId,
+                Description = command.Description,
+                Monday = command.Monday,
+                Tuesday = command.Tuesday,
+                Wednesday = command.Wednesday,
+                Thursday = command.Thursday,
+                Friday = command.Friday,
+                Saturday = command.Saturday,
+                Sunday = command.Sunday,
+            });
         }
 
-        public void Handle(AllowanceSpentEvent @event)
+        public void Apply(DeedScheduledEvent evt)
         {
-            var trans = new TransactionDataContract
+        }
+
+        public void Execute(UnscheduleDeed command)
+        {
+            this.NewEvent(new DeedUnscheduledEvent
             {
-                IsSpend = true,
-                Amount = @event.Amount,
-                Description = @event.Description,
-                MinionId = @event.AggregateId,
-                TransactionDate = @event.Date,
-            };
-
-            this.SaveReadModel(trans);
+                DeedId = command.DeedId,
+            });
         }
 
-        protected override void DoSaveReadModel(IReadModel readModel)
+        public void Apply(DeedUnscheduledEvent evt)
         {
-            this.repository.Save((TransactionDataContract)readModel);
+        }
+
+        public void Execute(PerformDeed command)
+        {
+            this.NewEvent(new DeedPerformedEvent
+            {
+                DeedId = command.DeedId,
+                Date = command.Date,
+            });
+        }
+
+        public void Apply(DeedPerformedEvent evt)
+        {
+        }
+
+        public void Execute(ResetDeed command)
+        {
+            this.NewEvent(new DeedResetEvent
+            {
+                Id = command.Id,
+            });
+        }
+
+        public void Apply(DeedResetEvent evt)
+        {
         }
     }
 }

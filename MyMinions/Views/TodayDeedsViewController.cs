@@ -1,15 +1,15 @@
 //  --------------------------------------------------------------------------------------------------------------------
 //  <copyright file=".cs" company="sgmunn">
 //    (c) sgmunn 2012  
-// 
+//
 //    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
 //    documentation files (the "Software"), to deal in the Software without restriction, including without limitation 
 //    the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and 
 //    to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-// 
+//
 //    The above copyright notice and this permission notice shall be included in all copies or substantial portions of 
 //    the Software.
-//  
+//
 //    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
 //    THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
 //    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
@@ -17,54 +17,49 @@
 //    IN THE SOFTWARE.
 //  </copyright>
 //  --------------------------------------------------------------------------------------------------------------------
-// 
+//
 
-namespace MyMinions.Domain.Data
+using MonoKit.UI.Elements;
+using MonoKit.UI.AwesomeMenu;
+using System.Drawing;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace MyMinions.Views
 {
     using System;
-    using MonoKit.Data.SQLite;
-    using MonoKit.Domain;
+    using MonoKit.Metro;
+    using MonoKit.UI;
+    using MonoTouch.UIKit;
 
-    public class TransactionDataContract : IReadModel
+    // todo: notify when all animations are complete on menu items and remove from view
+
+    public class TodayDeedsViewController : TableViewController
     {
-        public TransactionDataContract()
+        public TodayDeedsViewController() : base(UITableViewStyle.Plain)
         {
-            this.Id = Guid.NewGuid();
+            this.Title = "today";
         }
 
-        Identity IReadModel.Id { get; set; }
-
-        [PrimaryKey]
-        public Guid Id 
+        public override void LoadView()
         {
-            get
-            {
-                return ((IReadModel)this).Id.Id;
-            }
+            base.LoadView();
 
-            set 
-            {
-                ((IReadModel)this).Id = new TransactionId(value);
-            }
+            var section1 = new TableViewSection(this.Source);
+            section1.Add(new StringElement("today 1") { Command = this.NavigateToMinionToday });
+            section1.Add(new StringElement("today 2") { Command = this.NavigateToMinionToday });
+            section1.Add(new StringElement("today 3") { Command = this.NavigateToMinionToday });
+            section1.Add(new StringElement("today 4") { Command = this.NavigateToMinionToday });
+
+            this.View.Layer.CornerRadius = 10;
         }
 
-        [Indexed]
-        public Guid MinionId { get; set; }
-
-        public DateTime TransactionDate { get; set; }
-
-        public decimal Amount { get; set; }
-
-        public string Description { get; set; }
-
-        public bool AsCash { get; set; }
-
-        public bool IsSpend { get; set; }
-
-        public override string ToString()
+        private void NavigateToMinionToday(Element element)
         {
-            return string.Format("{0}, {1}", Amount, Description);
+            //var p = this.ParentViewController.ParentViewController as UIPanoramaViewController;
+            //p.Present(new MinionController());
+            //p.Dismiss();
         }
     }
-}
 
+}

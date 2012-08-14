@@ -73,8 +73,8 @@ namespace MyMinions.UI
             this.pagedView.Alpha = 1f;
             UIView.CommitAnimations();
 
-            IObservable<IReadModel> bus = this.context.EventBus;
-            this.lifetime.Add(bus.ObserveOnMainThread().Subscribe<IReadModel>(this.OnNextReadModel));
+            IObservable<ReadModelChangeEvent> bus = this.context.EventBus;
+            this.lifetime.Add(bus.ObserveOnMainThread().Subscribe<ReadModelChangeEvent>(this.OnNextReadModel));
         }
         
         public override void ViewDidUnload()
@@ -125,11 +125,11 @@ namespace MyMinions.UI
             this.NavigationController.PushViewController(settings, true);
         }
         
-        private void OnNextReadModel(IReadModel readModel)
+        private void OnNextReadModel(ReadModelChangeEvent readModel)
         {
-            if (readModel is MinionDataContract)
+            if (readModel.ReadModel is MinionDataContract)
             {
-                this.MinionUpdated((MinionDataContract)readModel);
+                //this.MinionUpdated((MinionDataContract)readModel);
             }
         }
 

@@ -113,6 +113,23 @@
     <Compile Include="UI\SettingsViewController.cs" />
     <Compile Include="Domain\Data\MinionRepository.cs" />
     <Compile Include="UI\RecipientEditViewController.cs" />
+    <Compile Include="Views\MinionPanoramaViewController.cs" />
+    <Compile Include="Views\HomeController.cs" />
+    <Compile Include="Views\AllMinionsViewController.cs" />
+    <Compile Include="Views\TodayDeedsViewController.cs" />
+    <Compile Include="Views\MinionController.cs" />
+    <Compile Include="Views\MinionDeedsController.cs" />
+    <Compile Include="Views\MinionCashController.cs" />
+    <Compile Include="Views\UIBackButtonPanoramaViewController.cs" />
+    <Compile Include="Views\HireController.cs" />
+    <Compile Include="Views\FireController.cs" />
+    <Compile Include="Views\EarnController.cs" />
+    <Compile Include="Views\SpendController.cs" />
+    <Compile Include="Views\ReviewController.cs" />
+    <Compile Include="Views\EditController.cs" />
+    <Compile Include="Domain\TransactionReadModelBuilder.cs" />
+    <Compile Include="Domain\MinionReadModelBuilder.cs" />
+    <Compile Include="Domain\CommandsEvents.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -129,6 +146,8 @@
     <Folder Include="Domain\" />
     <Folder Include="Domain\Data\" />
     <Folder Include="UI\" />
+    <Folder Include="Images\" />
+    <Folder Include="Views\" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="UI\MainViewController.xib" />
@@ -136,5 +155,21 @@
     <InterfaceDefinition Include="UI\EarnViewController.xib" />
     <InterfaceDefinition Include="UI\SpendViewController.xib" />
     <InterfaceDefinition Include="UI\TransactionsViewController.xib" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Images\bg-addbutton-highlighted.png" />
+    <Content Include="Images\bg-addbutton-highlighted%402x.png" />
+    <Content Include="Images\bg-addbutton.png" />
+    <Content Include="Images\bg-addbutton%402x.png" />
+    <Content Include="Images\bg-menuitem-highlighted.png" />
+    <Content Include="Images\bg-menuitem-highlighted%402x.png" />
+    <Content Include="Images\bg-menuitem.png" />
+    <Content Include="Images\bg-menuitem%402x.png" />
+    <Content Include="Images\icon-plus-highlighted.png" />
+    <Content Include="Images\icon-plus-highlighted%402x.png" />
+    <Content Include="Images\icon-plus.png" />
+    <Content Include="Images\icon-plus%402x.png" />
+    <Content Include="Images\icon-star.png" />
+    <Content Include="Images\icon-star%402x.png" />
   </ItemGroup>
 </Project>

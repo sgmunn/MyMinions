@@ -25,7 +25,7 @@ using System.Linq;
 using MonoTouch.Foundation;
 using MonoTouch.UIKit;
 using System.Threading;
-using MyMinions.UI;
+using MyMinions.Views;
 using MyMinions.Domain.Data;
 using MyMinions.Domain;
 using MonoKit.Domain;
@@ -41,7 +41,7 @@ namespace MyMinions
         private MinionContext context;
         private UIWindow window;
         private UINavigationController navController;
-        private MainViewController mainViewController;
+        //private MainViewController mainViewController;
 
         // This method is invoked when the application has loaded and is ready to run. In this 
         // method you should instantiate the window, load the UI into it and then make the window
@@ -52,13 +52,15 @@ namespace MyMinions
         public override bool FinishedLaunching(UIApplication app, NSDictionary options)
         {
             this.window = new UIWindow(UIScreen.MainScreen.Bounds);
-            this.navController = new UINavigationController();
-            this.navController.NavigationBarHidden = true;
-            this.window.RootViewController = this.navController;
+            //this.navController = new UINavigationController();
+            //this.navController.NavigationBarHidden = true;
+            //this.window.RootViewController = this.navController;
+
+            this.window.RootViewController = new HomeController();
             this.window.MakeKeyAndVisible();
 
-            var startupThread = new Thread(this.Startup);
-            startupThread.Start();
+            //var startupThread = new Thread(this.Startup);
+            //startupThread.Start();
 
             return true;
         }
@@ -71,14 +73,14 @@ namespace MyMinions
 
             this.InvokeOnMainThread(() =>
             {
-                this.mainViewController = new MainViewController(
-                    this.context, 
-                    new MinionRepository(MinionDB.Main),
-                    new TransactionRepository(MinionDB.Main)
-                    );
-                this.navController.PushViewController(this.mainViewController, false);
+//                this.mainViewController = new MainViewController(
+//                    this.context, 
+//                    new MinionRepository(MinionDB.Main),
+//                    new TransactionRepository(MinionDB.Main)
+//                    );
+//                this.navController.PushViewController(this.mainViewController, false);
 
-                this.mainViewController.Load();
+//                this.mainViewController.Load();
             });
         }
     }

@@ -43,8 +43,8 @@ namespace MyMinions.UI
                 {
                     this.lifetime.Clear();
 
-                    IObservable<IReadModel> bus = this.Context.EventBus;
-                    this.lifetime.Add(bus.ObserveOnMainThread().Subscribe<IReadModel>(this.OnNextReadModel));
+                    IObservable<ReadModelChangeEvent> bus = this.Context.EventBus;
+                    this.lifetime.Add(bus.ObserveOnMainThread().Subscribe<ReadModelChangeEvent>(this.OnNextReadModel));
                 }
 
                 this.minion = value;
@@ -83,16 +83,16 @@ namespace MyMinions.UI
             this.Controller.PresentModalViewController(spendView, true);
         }
 
-        private void OnNextReadModel(IReadModel readModel)
+        private void OnNextReadModel(ReadModelChangeEvent readModel)
         {
-            if (readModel is TransactionDataContract)
+            if (readModel.ReadModel is TransactionDataContract)
             {
-                this.TransactionUpdated((TransactionDataContract)readModel);
+               // this.TransactionUpdated((TransactionDataContract)readModel);
             }
 
-            if (readModel is MinionDataContract)
+            if (readModel.ReadModel is MinionDataContract)
             {
-                this.MinionUpdated((MinionDataContract)readModel);
+              //  this.MinionUpdated((MinionDataContract)readModel);
             }
         }
 
@@ -108,7 +108,7 @@ namespace MyMinions.UI
                 // by-pass property, bit of a hack
                 this.minion = minion;
                 this.minionNameLabel.Text = minion.MinionName;
-                this.transactionButton.SetTitle(string.Format("{0}", minion.CurrentBalance), UIControlState.Normal);
+                this.transactionButton.SetTitle(string.Format("{0}", minion.CashBalance), UIControlState.Normal);
             }
         }
 

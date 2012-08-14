@@ -15,13 +15,13 @@ namespace MyMinions
     {
         private readonly IDomainContext context;
 
-        private readonly Guid minionId;
+        private readonly MinionId minionId;
 
         private UIDateField dateField;
 
         private decimal defaultAllowance;
 
-        public EarnViewController(IDomainContext context, Guid minionId, decimal defaultAllowance) : base ("EarnViewController", null)
+        public EarnViewController(IDomainContext context, MinionId minionId, decimal defaultAllowance) : base ("EarnViewController", null)
         {
             this.context = context;
             this.minionId = minionId;

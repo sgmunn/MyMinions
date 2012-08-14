@@ -18,14 +18,14 @@
 //  </copyright>
 //  --------------------------------------------------------------------------------------------------------------------
 // 
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Threading;
-using System.Linq;
 
 namespace MyMinions.Domain.Data
 {
     using System;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+    using System.Threading;
+    using System.Linq;
     using MonoKit.Data;
     using MonoKit.Data.SQLite;
 
@@ -37,14 +37,6 @@ namespace MyMinions.Domain.Data
     {
         public MinionRepository(SQLiteConnection connection) : base(connection)
         {
-        }
-
-        public override IEnumerable<MinionDataContract> GetAll()
-        {
-            // override to exclude deleted items
-            return base.GetAll();
-            // SQLite cannot compile '!'
-            //return GetSync(() => this.Connection.Table<MinionDataContract>().Where(x => x.Deleted == false || x.Deleted == null).AsEnumerable());
         }
     }
 
@@ -62,8 +54,6 @@ namespace MyMinions.Domain.Data
 
         public IEnumerable<TransactionDataContract> GetAllForMinion(Guid id)
         {
-            //return this.GetAll();
-
             return GetSync(() => 
                this.Connection.Table<TransactionDataContract>().Where(x => x.MinionId == id).AsEnumerable());
         }
@@ -73,6 +63,54 @@ namespace MyMinions.Domain.Data
             DoSync(() =>
                    this.Connection.Execute("delete from TransactionDataContract where MinionId = ?", id)
                    );
+        }
+    }
+
+    public interface IScheduledDeedRepository : IRepository<ScheduledDeedDataContract>
+    {
+        IEnumerable<ScheduledDeedDataContract> GetAllForMinion(Guid id);
+    }
+
+    public class ScheduledDeedRepository : SQLiteRepository<ScheduledDeedDataContract>, IScheduledDeedRepository
+    {
+        public ScheduledDeedRepository(SQLiteConnection connection) : base(connection)
+        {
+        }
+
+        public IEnumerable<ScheduledDeedDataContract> GetAllForMinion(Guid id)
+        {
+            return GetSync(() => 
+               this.Connection.Table<ScheduledDeedDataContract>().Where(x => x.MinionId == id).AsEnumerable());
+        }
+    }
+
+    public interface IPerformedDeedRepository : IRepository<PerformedDeedDataContract>
+    {
+        IEnumerable<PerformedDeedDataContract> GetTodaysForMinion(Guid id);
+        IEnumerable<PerformedDeedDataContract> GetThisWeekForMinion(Guid id);
+    }
+
+    public class PerformedDeedRepository : SQLiteRepository<PerformedDeedDataContract>, IPerformedDeedRepository
+    {
+        public PerformedDeedRepository(SQLiteConnection connection) : base(connection)
+        {
+        }
+
+        public IEnumerable<PerformedDeedDataContract> GetTodaysForMinion(Guid id)
+        {
+            DateTime today = DateTime.Today;
+
+            return GetSync(() => 
+               this.Connection.Table<PerformedDeedDataContract>().Where(x => x.MinionId == id && x.Date == today).AsEnumerable());
+        }
+
+        public IEnumerable<PerformedDeedDataContract> GetThisWeekForMinion(Guid id)
+        {
+            DateTime monday = DateTime.Today;
+            DateTime sunday = DateTime.Today;
+
+            return GetSync(() => 
+               this.Connection.Table<PerformedDeedDataContract>().Where(x => x.MinionId == id && x.Date >= monday && x.Date <= sunday).AsEnumerable());
         }
     }
 }

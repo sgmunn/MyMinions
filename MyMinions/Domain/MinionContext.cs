@@ -50,6 +50,16 @@ namespace MyMinions.Domain
             {
                 return new MinionReadModelBuilder(new MinionRepository(this.Connection));
             });
+
+            this.RegisterBuilder<Minion>((c) =>
+            {
+                return new ScheduledDeedReadModelBuilder(new ScheduledDeedRepository(this.Connection));
+            });
+
+            this.RegisterBuilder<Minion>((c) =>
+            {
+                return new PerformedDeedReadModelBuilder(new PerformedDeedRepository(this.Connection));
+            });
         }
     }
 
@@ -74,6 +84,8 @@ namespace MyMinions.Domain
         {
             this.CreateTable<MinionDataContract>();
             this.CreateTable<TransactionDataContract>();
+            this.CreateTable<ScheduledDeedDataContract>();
+            this.CreateTable<PerformedDeedDataContract>();
         }
 
         private class Constructor
