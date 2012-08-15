@@ -24,7 +24,6 @@ namespace MyMinions.Domain
     using System;
     using MonoKit.Domain;
     using MyMinions.Domain.Data;
-    using MonoKit.Domain.Events;
     using MonoKit.Domain.Data;
 
     public class MinionReadModelBuilder : ReadModelBuilder
@@ -39,7 +38,7 @@ namespace MyMinions.Domain
         public void Handle(DeletedEvent evt)
         {
             this.repository.DeleteId(evt.AggregateId);
-            this.NotifyReadModelChange(evt.AggregateId, ReadModelChange.Deleted);
+            this.NotifyReadModelChange(evt.AggregateId, true);
         }
     }
 
@@ -69,7 +68,7 @@ namespace MyMinions.Domain
             };
 
             this.repository.Save(scheduledEvent);
-            this.NotifyReadModelChange(scheduledEvent, ReadModelChange.Changed);
+            this.NotifyReadModelChange(scheduledEvent, false);
         }
 
         public void Handle(DeedUnscheduledEvent evt)
@@ -98,7 +97,7 @@ namespace MyMinions.Domain
             };
 
             this.repository.Save(performedEvent);
-            this.NotifyReadModelChange(performedEvent, ReadModelChange.Changed);
+            this.NotifyReadModelChange(performedEvent, false);
         }
 
         public void Handle(DeedResetEvent evt)

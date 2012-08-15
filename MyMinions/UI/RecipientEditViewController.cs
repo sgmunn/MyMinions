@@ -78,8 +78,8 @@ namespace MyMinions.UI
                  {
                     this.commandExecutor.Execute(
                         new MonoKit.Domain.ICommand [] {
-                            new ChangeNameCommand { AggregateId = ((IReadModel)minion).Id, Name = this.minion.MinionName, },
-                            new ChangeAllowanceCommand { AggregateId = ((IReadModel)minion).Id, Allowance = this.minion.WeeklyAllowance, }
+                            new ChangeNameCommand { AggregateId = minion.Identity, Name = this.minion.MinionName, },
+                            new ChangeAllowanceCommand { AggregateId = minion.Identity, Allowance = this.minion.WeeklyAllowance, }
                         });
                 }).Subscribe();
         }

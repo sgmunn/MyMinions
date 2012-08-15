@@ -11,9 +11,9 @@ using MonoKit.Domain;
 using MonoKit.Reactive;
 using MonoKit.Reactive.Disposables;
 using MyMinions.Domain;
-using MonoKit.Domain.Commands;
 using MonoKit;
 using MonoKit.Reactive.Linq;
+using MonoKit.Data;
 
 namespace MyMinions.UI
 {
@@ -44,8 +44,8 @@ namespace MyMinions.UI
             base.ViewDidLoad();
 
             // todo: implement .Where so that we can subscribe to the events we want to know about
-            IObservable<ReadModelChangeEvent> bus = this.context.EventBus;
-            this.lifetime.Add(bus.ObserveOnMainThread().Subscribe<ReadModelChangeEvent>(this.OnNextReadModel));
+            IObservable<IReadModelChange> bus = this.context.EventBus;
+            this.lifetime.Add(bus.ObserveOnMainThread().Subscribe<IReadModelChange>(this.OnNextReadModel));
 
             if (this.Source.Count == 0)
             {
@@ -125,9 +125,9 @@ namespace MyMinions.UI
             this.NavigationItem.RightBarButtonItem.Enabled = true;
         }
 
-        private void OnNextReadModel(ReadModelChangeEvent readModel)
+        private void OnNextReadModel(IReadModelChange readModelChange)
         {
-            if (readModel.ReadModel is MinionDataContract)
+            if (readModelChange.Item is MinionDataContract)
             {
                // this.MinionUpdated((MinionDataContract)readModel);
             }
@@ -166,7 +166,7 @@ namespace MyMinions.UI
         private void DeleteMinion(Element element)
         {
             var minion = (MinionDataContract)element.Data;
-            this.commandExecutor.Execute(new DeleteCommand { AggregateId = ((IReadModel)minion).Id, });
+            this.commandExecutor.Execute(new DeleteCommand { AggregateId = minion.Identity, });
         }
 
         private void NavigateToMinion(MinionDataContract minion)

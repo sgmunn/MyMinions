@@ -23,6 +23,7 @@ namespace MyMinions.Domain.Data
 {
     using System;
     using System.ComponentModel;
+    using MonoKit.Data;
     using MonoKit.Data.SQLite;
     using MonoKit.Domain;
 
@@ -33,22 +34,18 @@ namespace MyMinions.Domain.Data
         {
             this.MinionName = "New Minion";
         }
-        
-        Identity IReadModel.Id { get; set; }
 
-        [PrimaryKey]
-        public Guid Id 
+        [Ignore]
+        public IIdentity Identity 
         {
             get
             {
-                return ((IReadModel)this).Id;
-            }
-
-            set 
-            {
-                ((IReadModel)this).Id = (MinionId)value;
+                return new MinionId(this.Id);
             }
         }
+
+        [PrimaryKey]
+        public Guid Id { get; set; }
 
         public int Version { get; set; }
 
@@ -72,21 +69,17 @@ namespace MyMinions.Domain.Data
             this.Description = "New Deed";
         }
         
-        Identity IReadModel.Id { get; set; }
-
-        [PrimaryKey]
-        public Guid Id 
+        [Ignore]
+        public IIdentity Identity 
         {
             get
             {
-                return ((IReadModel)this).Id.Id;
-            }
-
-            set 
-            {
-                ((IReadModel)this).Id = new ScheduledDeedId(value);
+                return new ScheduledDeedId(this.Id);
             }
         }
+
+        [PrimaryKey]
+        public Guid Id { get; set; } 
 
         [Indexed]
         public Guid MinionId { get; set; }
@@ -119,21 +112,17 @@ namespace MyMinions.Domain.Data
             this.Id = Guid.NewGuid();
         }
 
-        Identity IReadModel.Id { get; set; }
-
-        [PrimaryKey]
-        public Guid Id 
+        [Ignore]
+        public IIdentity Identity 
         {
             get
             {
-                return ((IReadModel)this).Id.Id;
-            }
-
-            set 
-            {
-                ((IReadModel)this).Id = new PerformedDeedId(value);
+                return new PerformedDeedId(this.Id);
             }
         }
+
+        [PrimaryKey]
+        public Guid Id { get; set; } 
 
         public int Version { get; set; }
         

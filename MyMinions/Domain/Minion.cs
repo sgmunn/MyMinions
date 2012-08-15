@@ -22,12 +22,9 @@
 namespace MyMinions.Domain
 {
     using System;
+    using MonoKit.Data;
     using MonoKit.Domain;
     using MyMinions.Domain.Data;
-    using MonoKit.Domain.Commands;
-    using MonoKit.Domain.Events;
-
-
 
     public sealed class MinionId : Identity
     {
@@ -99,9 +96,19 @@ namespace MyMinions.Domain
         {
         }
 
+        public override ISnapshot GetSnapshot()
+        {
+            var snapshot = this.InternalState;
+
+            snapshot.Id = this.Identity.Id;
+            snapshot.Version = this.Version;
+
+            return snapshot;
+        }
+
         public void Execute(ChangeNameCommand command)
         {
-            this.NewEvent(new NameChangedEvent { Name = command.Name, });
+            this.RaiseEvent(new NameChangedEvent { Name = command.Name, });
         }
 
         public void Apply(NameChangedEvent evt)
@@ -111,7 +118,7 @@ namespace MyMinions.Domain
 
         public void Execute(ChangeAllowanceCommand command)
         {
-            this.NewEvent(new AllowanceChangedEvent { Allowance = command.Allowance, });
+            this.RaiseEvent(new AllowanceChangedEvent { Allowance = command.Allowance, });
         }
 
         public void Apply(AllowanceChangedEvent evt)
@@ -121,7 +128,7 @@ namespace MyMinions.Domain
 
         public void Execute(DeleteCommand command)
         {
-            this.NewEvent(new DeletedEvent());
+            this.RaiseEvent(new DeletedEvent());
         }
 
         public void Apply(DeletedEvent evt)
@@ -131,7 +138,7 @@ namespace MyMinions.Domain
 
         public void Execute(EarnAllowanceCommand command)
         {
-            this.NewEvent(new AllowanceEarntEvent
+            this.RaiseEvent(new AllowanceEarntEvent
             {
                 Amount = command.Amount,
                 Date = command.Date,
@@ -148,7 +155,7 @@ namespace MyMinions.Domain
 
         public void Execute(SpendAllowanceCommand command)
         {
-            this.NewEvent(new AllowanceSpentEvent
+            this.RaiseEvent(new AllowanceSpentEvent
             {
                 Amount = command.Amount,
                 Date = command.Date,
@@ -165,7 +172,7 @@ namespace MyMinions.Domain
 
         public void Execute(ScheduleDeed command)
         {
-            this.NewEvent(new DeedScheduledEvent
+            this.RaiseEvent(new DeedScheduledEvent
             {
                 DeedId = command.DeedId,
                 Description = command.Description,
@@ -185,7 +192,7 @@ namespace MyMinions.Domain
 
         public void Execute(UnscheduleDeed command)
         {
-            this.NewEvent(new DeedUnscheduledEvent
+            this.RaiseEvent(new DeedUnscheduledEvent
             {
                 DeedId = command.DeedId,
             });
@@ -197,7 +204,7 @@ namespace MyMinions.Domain
 
         public void Execute(PerformDeed command)
         {
-            this.NewEvent(new DeedPerformedEvent
+            this.RaiseEvent(new DeedPerformedEvent
             {
                 DeedId = command.DeedId,
                 Date = command.Date,
@@ -210,7 +217,7 @@ namespace MyMinions.Domain
 
         public void Execute(ResetDeed command)
         {
-            this.NewEvent(new DeedResetEvent
+            this.RaiseEvent(new DeedResetEvent
             {
                 Id = command.Id,
             });

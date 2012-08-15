@@ -22,6 +22,7 @@
 namespace MyMinions.Domain.Data
 {
     using System;
+    using MonoKit.Data;
     using MonoKit.Data.SQLite;
     using MonoKit.Domain;
 
@@ -32,21 +33,17 @@ namespace MyMinions.Domain.Data
             this.Id = Guid.NewGuid();
         }
 
-        Identity IReadModel.Id { get; set; }
-
-        [PrimaryKey]
-        public Guid Id 
+        [Ignore]
+        public IIdentity Identity 
         {
             get
             {
-                return ((IReadModel)this).Id.Id;
-            }
-
-            set 
-            {
-                ((IReadModel)this).Id = new TransactionId(value);
+                return new TransactionId(this.Id);
             }
         }
+
+        [PrimaryKey]
+        public Guid Id { get; set; } 
 
         [Indexed]
         public Guid MinionId { get; set; }

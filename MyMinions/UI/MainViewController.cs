@@ -12,6 +12,7 @@ using System.Linq;
 using MonoKit.Reactive.Disposables;
 using MonoKit.Reactive;
 using MyMinions.Domain;
+using MonoKit.Data;
 
 namespace MyMinions.UI
 {
@@ -73,8 +74,8 @@ namespace MyMinions.UI
             this.pagedView.Alpha = 1f;
             UIView.CommitAnimations();
 
-            IObservable<ReadModelChangeEvent> bus = this.context.EventBus;
-            this.lifetime.Add(bus.ObserveOnMainThread().Subscribe<ReadModelChangeEvent>(this.OnNextReadModel));
+            IObservable<IReadModelChange> bus = this.context.EventBus;
+            this.lifetime.Add(bus.ObserveOnMainThread().Subscribe<IReadModelChange>(this.OnNextReadModel));
         }
         
         public override void ViewDidUnload()
@@ -125,9 +126,9 @@ namespace MyMinions.UI
             this.NavigationController.PushViewController(settings, true);
         }
         
-        private void OnNextReadModel(ReadModelChangeEvent readModel)
+        private void OnNextReadModel(IReadModelChange readModelChange)
         {
-            if (readModel.ReadModel is MinionDataContract)
+            if (readModelChange.Item is MinionDataContract)
             {
                 //this.MinionUpdated((MinionDataContract)readModel);
             }

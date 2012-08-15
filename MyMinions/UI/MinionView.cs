@@ -1,4 +1,6 @@
 
+using MonoKit.Data;
+
 namespace MyMinions.UI
 {
     using System;
@@ -43,8 +45,8 @@ namespace MyMinions.UI
                 {
                     this.lifetime.Clear();
 
-                    IObservable<ReadModelChangeEvent> bus = this.Context.EventBus;
-                    this.lifetime.Add(bus.ObserveOnMainThread().Subscribe<ReadModelChangeEvent>(this.OnNextReadModel));
+                    IObservable<IReadModelChange> bus = this.Context.EventBus;
+                    this.lifetime.Add(bus.ObserveOnMainThread().Subscribe<IReadModelChange>(this.OnNextReadModel));
                 }
 
                 this.minion = value;
@@ -83,14 +85,14 @@ namespace MyMinions.UI
             this.Controller.PresentModalViewController(spendView, true);
         }
 
-        private void OnNextReadModel(ReadModelChangeEvent readModel)
+        private void OnNextReadModel(IReadModelChange readModelChange)
         {
-            if (readModel.ReadModel is TransactionDataContract)
+            if (readModelChange.Item is TransactionDataContract)
             {
                // this.TransactionUpdated((TransactionDataContract)readModel);
             }
 
-            if (readModel.ReadModel is MinionDataContract)
+            if (readModelChange.Item is MinionDataContract)
             {
               //  this.MinionUpdated((MinionDataContract)readModel);
             }

@@ -24,6 +24,22 @@ namespace MyMinions.Domain
     using System;
     using MonoKit.Domain;
 
+    public class CreateCommand : CommandBase
+    {
+    }
+
+    public class CreatedEvent : EventBase
+    {
+    }
+
+    public class DeleteCommand : CommandBase
+    {
+    }
+
+    public class DeletedEvent : EventBase
+    {
+    }
+
     public class ChangeNameCommand : CommandBase
     {
         public string Name { get; set; }

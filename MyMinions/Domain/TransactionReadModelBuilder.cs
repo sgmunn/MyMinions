@@ -24,7 +24,6 @@ namespace MyMinions.Domain
     using System;
     using MonoKit.Domain;
     using MyMinions.Domain.Data;
-    using MonoKit.Domain.Events;
     using MonoKit.Domain.Data;
 
     public class TransactionReadModelBuilder : ReadModelBuilder
@@ -57,7 +56,7 @@ namespace MyMinions.Domain
             };
 
             this.repository.Save(trans);
-            this.NotifyReadModelChange(trans, ReadModelChange.Changed);
+            this.NotifyReadModelChange(trans, false);
         }
 
         public void Handle(AllowanceSpentEvent evt)
@@ -74,7 +73,7 @@ namespace MyMinions.Domain
             };
 
             this.repository.Save(trans);
-            this.NotifyReadModelChange(trans, ReadModelChange.Changed);
+            this.NotifyReadModelChange(trans, false);
         }
     }
 }
