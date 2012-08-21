@@ -32,7 +32,7 @@ namespace MyMinions.Domain.Data
         {
             this.CreateTable<AggregateManifest>();
             this.CreateTable<MinionContract>();
-            this.CreateTable<TransactionDataContract>();
+            this.CreateTable<TransactionContract>();
             this.CreateTable<ScheduledDeedContract>();
             this.CreateTable<PerformedDeedContract>();
         }

@@ -10,7 +10,7 @@ namespace MyMinions.Domain.Builders
     using MyMinions.Domain.Data;
     using MonoKit.Domain.Data;
 
-    public class TransactionReadModelBuilder : ReadModelBuilder<TransactionDataContract>
+    public class TransactionReadModelBuilder : ReadModelBuilder<TransactionContract>
     {
         public TransactionReadModelBuilder(ITransactionRepository repository) : base(repository)
         {
@@ -24,7 +24,7 @@ namespace MyMinions.Domain.Builders
 
         public void Handle(AllowanceEarntEvent evt)
         {
-            var trans = new TransactionDataContract
+            var trans = new TransactionContract
             {
                 Id = evt.Transactionid,
                 IsSpend = false,
@@ -40,7 +40,7 @@ namespace MyMinions.Domain.Builders
 
         public void Handle(AllowanceSpentEvent evt)
         {
-            var trans = new TransactionDataContract
+            var trans = new TransactionContract
             {
                 Id = evt.Transactionid,
                 IsSpend = true,

@@ -1,5 +1,5 @@
 //  --------------------------------------------------------------------------------------------------------------------
-//  <copyright file="Minion.cs" company="sgmunn">
+//  <copyright file="MinionAggregate.cs" company="sgmunn">
 //    (c) sgmunn 2012  
 //  </copyright>
 //  --------------------------------------------------------------------------------------------------------------------
@@ -11,9 +11,9 @@ namespace MyMinions.Domain
     using MyMinions.Domain.Data;
     using MonoKit.Domain.Data;
 
-    public class Minion : AggregateRoot<MinionContract>
+    public class MinionAggregate : AggregateRoot<MinionContract>
     {
-        public Minion()
+        public MinionAggregate()
         {
         }
 

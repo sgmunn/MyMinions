@@ -29,24 +29,24 @@ namespace MyMinions.Domain
 
         private void Bootstrap()
         {
-            this.RegisterSnapshot<Minion>(c => new SnapshotRepository<MinionContract>(this.Connection));
+            this.RegisterSnapshot<MinionAggregate>(c => new SnapshotRepository<MinionContract>(this.Connection));
 
-            this.RegisterBuilder<Minion>((c) =>
+            this.RegisterBuilder<MinionAggregate>((c) =>
             {
                 return new TransactionReadModelBuilder(new TransactionRepository(this.Connection));
             });
 
-            this.RegisterBuilder<Minion>((c) =>
+            this.RegisterBuilder<MinionAggregate>((c) =>
             {
                 return new MinionReadModelBuilder(new SqlRepository<MinionContract>(this.Connection));
             });
 
-            this.RegisterBuilder<Minion>((c) =>
+            this.RegisterBuilder<MinionAggregate>((c) =>
             {
                 return new ScheduledDeedReadModelBuilder(new ScheduledDeedRepository(this.Connection));
             });
 
-            this.RegisterBuilder<Minion>((c) =>
+            this.RegisterBuilder<MinionAggregate>((c) =>
             {
                 return new PerformedDeedReadModelBuilder(new PerformedDeedRepository(this.Connection));
             });

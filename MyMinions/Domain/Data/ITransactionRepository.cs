@@ -10,9 +10,9 @@ namespace MyMinions.Domain.Data
     using System.Collections.Generic;
     using MonoKit.Data;
 
-    public interface ITransactionRepository : IRepository<TransactionDataContract>
+    public interface ITransactionRepository : IRepository<TransactionContract>
     {
-        IEnumerable<TransactionDataContract> GetAllForMinion(Guid id);
+        IEnumerable<TransactionContract> GetAllForMinion(Guid id);
         void DeleteAllForMinion(Guid id);
     }
 }

@@ -84,7 +84,7 @@ namespace MyMinions
             var subscription = Observable.Start(
                 () => 
                  {
-                    var cmd = this.context.NewCommandExecutor<Minion>();
+                    var cmd = this.context.NewCommandExecutor<MinionAggregate>();
                     cmd.Execute(new EarnAllowanceCommand 
                     { 
                         AggregateId = this.minionId, 

@@ -12,16 +12,16 @@ namespace MyMinions.Domain.Data
     using MonoKit.Data.SQLite;
     using MonoKit.Tasks;
 
-    public class TransactionRepository : SqlRepository<TransactionDataContract>, ITransactionRepository
+    public class TransactionRepository : SqlRepository<TransactionContract>, ITransactionRepository
     {
         public TransactionRepository(SQLiteConnection connection) : base(connection)
         {
         }
 
-        public IEnumerable<TransactionDataContract> GetAllForMinion(Guid id)
+        public IEnumerable<TransactionContract> GetAllForMinion(Guid id)
         {
             return SynchronousTask.GetSync(() => 
-               this.Connection.Table<TransactionDataContract>().Where(x => x.MinionId == id).AsEnumerable());
+               this.Connection.Table<TransactionContract>().Where(x => x.MinionId == id).AsEnumerable());
         }
 
         public void DeleteAllForMinion(Guid id)

@@ -21,7 +21,7 @@ namespace MyMinions.UI
     {
         private readonly CompositeDisposable lifetime;
         private readonly TableViewSource tableSource;
-        private TableViewSection<TransactionDataContract> section;
+        private TableViewSection<TransactionContract> section;
 
         private MinionContract minion;
 
@@ -99,7 +99,7 @@ namespace MyMinions.UI
             }
         }
 
-        private void TransactionUpdated(TransactionDataContract transaction)
+        private void TransactionUpdated(TransactionContract transaction)
         {
             this.section.Insert(0, transaction);
         }
@@ -119,7 +119,7 @@ namespace MyMinions.UI
         {
             if (this.section == null)
             {
-                this.section = new TableViewSection<TransactionDataContract>(this.tableSource);
+                this.section = new TableViewSection<TransactionContract>(this.tableSource);
             
                 this.tableSource.TableView = this.transactionTable;
             }
@@ -127,7 +127,7 @@ namespace MyMinions.UI
 
         private void LoadTransactionsAsync()
         {
-            var subscription = Observable.Start<IEnumerable<TransactionDataContract>>(
+            var subscription = Observable.Start<IEnumerable<TransactionContract>>(
                 () =>
                 {
                     return this.Repository.GetAllForMinion(this.Minion.Id).OrderByDescending(x => x.TransactionDate);
@@ -141,7 +141,7 @@ namespace MyMinions.UI
             this.lifetime.Add(subscription);
         }
 
-        private void LoadTransactions(IEnumerable<TransactionDataContract> transactions)
+        private void LoadTransactions(IEnumerable<TransactionContract> transactions)
         {
             this.section.BeginUpdate();
             this.section.Clear();

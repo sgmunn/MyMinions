@@ -25,14 +25,14 @@ namespace MyMinions.UI
 
         private readonly CompositeDisposable lifetime;
 
-        private readonly ICommandExecutor<Minion> commandExecutor;
+        private readonly ICommandExecutor<MinionAggregate> commandExecutor;
 
         public SettingsViewController(IDomainContext context, IRepository<MinionContract> repository) : base(UITableViewStyle.Plain, new SettingsSource())
         {
             this.context = context;
             this.repository = repository;
             this.lifetime = new CompositeDisposable();
-            this.commandExecutor = context.NewCommandExecutor<Minion>();
+            this.commandExecutor = context.NewCommandExecutor<MinionAggregate>();
 
             this.NavigationItem.Title = "Settings";
             this.NavigationItem.RightBarButtonItem = new UIBarButtonItem(UIBarButtonSystemItem.Edit, this.Edit);

@@ -33,11 +33,11 @@ namespace MyMinions.UI
 
     public class RecipientEditViewController : TableViewController
     {
-        private readonly ICommandExecutor<Minion> commandExecutor;
+        private readonly ICommandExecutor<MinionAggregate> commandExecutor;
 
         private MinionContract minion;
 
-        public RecipientEditViewController(ICommandExecutor<Minion> commandExecutor) : base(UITableViewStyle.Grouped)
+        public RecipientEditViewController(ICommandExecutor<MinionAggregate> commandExecutor) : base(UITableViewStyle.Grouped)
         {
             this.commandExecutor = commandExecutor;
         }

@@ -94,7 +94,6 @@
     <Compile Include="Main.cs" />
     <Compile Include="AppDelegate.cs" />
     <Compile Include="Domain\MinionContext.cs" />
-    <Compile Include="Domain\Minion.cs" />
     <Compile Include="UI\MainViewController.cs" />
     <Compile Include="UI\MainViewController.designer.cs">
       <DependentUpon>MainViewController.cs</DependentUpon>
@@ -103,12 +102,10 @@
     <Compile Include="UI\MinionView.designer.cs" />
     <Compile Include="UI\EarnViewController.cs" />
     <Compile Include="UI\EarnViewController.designer.cs" />
-    <Compile Include="Domain\Data\MinionTaskDataContract.cs" />
     <Compile Include="UI\SpendViewController.cs" />
     <Compile Include="UI\SpendViewController.designer.cs" />
     <Compile Include="UI\TransactionsViewController.cs" />
     <Compile Include="UI\TransactionsViewController.designer.cs" />
-    <Compile Include="Domain\Data\TransactionDataContract.cs" />
     <Compile Include="UI\SettingsViewController.cs" />
     <Compile Include="UI\RecipientEditViewController.cs" />
     <Compile Include="Views\MinionPanoramaViewController.cs" />
@@ -141,6 +138,8 @@
     <Compile Include="Domain\Data\ScheduledDeedRepository.cs" />
     <Compile Include="Domain\Data\IPerformedDeedRepository.cs" />
     <Compile Include="Domain\Data\PerformedDeedRepository.cs" />
+    <Compile Include="Domain\MinionAggregate.cs" />
+    <Compile Include="Domain\Data\TransactionContract.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

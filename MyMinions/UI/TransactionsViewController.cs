@@ -18,7 +18,7 @@ namespace RewardSquirrel
     public partial class TransactionsViewController : UIViewController
     {
         private TableViewSource tableSource;
-        private TableViewSection<TransactionDataContract> section;
+        private TableViewSection<TransactionContract> section;
         private int recipientId;
         
         public TransactionsViewController(int recipientId) : base ("TransactionsViewController", null)
@@ -44,8 +44,8 @@ namespace RewardSquirrel
             
             if (this.section == null)
             {
-                this.section = new TableViewSection<TransactionDataContract>(this.tableSource,
-                    new UIViewDefinition<StringElementTableViewCell, TransactionDataContract>(this.Bind) { Param = UITableViewCellStyle.Value1 }           
+                this.section = new TableViewSection<TransactionContract>(this.tableSource,
+                    new UIViewDefinition<StringElementTableViewCell, TransactionContract>(this.Bind) { Param = UITableViewCellStyle.Value1 }           
                     );
             }
             
