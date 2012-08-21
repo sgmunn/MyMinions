@@ -1,5 +1,6 @@
 
 using MonoKit.Data;
+using MyMinions.Domain;
 
 namespace MyMinions.UI
 {
@@ -22,7 +23,7 @@ namespace MyMinions.UI
         private readonly TableViewSource tableSource;
         private TableViewSection<TransactionDataContract> section;
 
-        private MinionDataContract minion;
+        private MinionContract minion;
 
         public MinionView(IntPtr handle) : base(handle)
         {
@@ -30,7 +31,7 @@ namespace MyMinions.UI
             this.tableSource = new TableViewSource();
         }
         
-        public MinionDataContract Minion
+        public MinionContract Minion
         {
             get
             {
@@ -45,8 +46,8 @@ namespace MyMinions.UI
                 {
                     this.lifetime.Clear();
 
-                    IObservable<IReadModelChange> bus = this.Context.EventBus;
-                    this.lifetime.Add(bus.ObserveOnMainThread().Subscribe<IReadModelChange>(this.OnNextReadModel));
+                    var bus = this.Context.EventBus;
+                    this.lifetime.Add(bus.ObserveOnMainThread().Subscribe(this.OnNextReadModel));
                 }
 
                 this.minion = value;
@@ -85,14 +86,14 @@ namespace MyMinions.UI
             this.Controller.PresentModalViewController(spendView, true);
         }
 
-        private void OnNextReadModel(IReadModelChange readModelChange)
+        private void OnNextReadModel(IDataModelEvent readModelChange)
         {
-            if (readModelChange.Item is TransactionDataContract)
+            if (readModelChange.Identity is TransactionId)
             {
                // this.TransactionUpdated((TransactionDataContract)readModel);
             }
 
-            if (readModelChange.Item is MinionDataContract)
+            if (readModelChange.Identity is MinionId)
             {
               //  this.MinionUpdated((MinionDataContract)readModel);
             }
@@ -103,7 +104,7 @@ namespace MyMinions.UI
             this.section.Insert(0, transaction);
         }
 
-        private void MinionUpdated(MinionDataContract minion)
+        private void MinionUpdated(MinionContract minion)
         {
             if (minion.Id == this.Minion.Id)
             {

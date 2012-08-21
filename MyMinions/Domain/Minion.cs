@@ -1,97 +1,18 @@
 //  --------------------------------------------------------------------------------------------------------------------
-//  <copyright file=".cs" company="sgmunn">
+//  <copyright file="Minion.cs" company="sgmunn">
 //    (c) sgmunn 2012  
-// 
-//    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
-//    documentation files (the "Software"), to deal in the Software without restriction, including without limitation 
-//    the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and 
-//    to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-// 
-//    The above copyright notice and this permission notice shall be included in all copies or substantial portions of 
-//    the Software.
-//  
-//    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
-//    THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
-//    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
-//    CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS 
-//    IN THE SOFTWARE.
 //  </copyright>
 //  --------------------------------------------------------------------------------------------------------------------
-// 
 
 namespace MyMinions.Domain
 {
     using System;
-    using MonoKit.Data;
     using MonoKit.Domain;
     using MyMinions.Domain.Data;
+    using MonoKit.Domain.Data;
 
-    public sealed class MinionId : Identity
+    public class Minion : AggregateRoot<MinionContract>
     {
-        public MinionId(Guid id)
-            : base(id)
-        {
-        }
-
-        public static MinionId NewId()
-        {
-            return new MinionId(Guid.NewGuid());
-        }
-
-        public static implicit operator MinionId(Guid id)
-        {
-            return new MinionId(id);
-        }
-    }
-
-    public sealed class TransactionId : Identity
-    {
-        public TransactionId(Guid id)
-            : base(id)
-        {
-        }
-
-        public static TransactionId NewId()
-        {
-            return new TransactionId(Guid.NewGuid());
-        }
-    }
-
-    public sealed class ScheduledDeedId : Identity
-    {
-        public ScheduledDeedId(Guid id)
-            : base(id)
-        {
-        }
-
-        public static ScheduledDeedId NewId()
-        {
-            return new ScheduledDeedId(Guid.NewGuid());
-        }
-    }
-
-    public sealed class PerformedDeedId : Identity
-    {
-        public PerformedDeedId(Guid id)
-            : base(id)
-        {
-        }
-
-        public static PerformedDeedId NewId()
-        {
-            return new PerformedDeedId(Guid.NewGuid());
-        }
-    }
-
-
-
-
-
-
-    public class Minion : AggregateRoot<MinionDataContract>
-    {
-        public static string AggregateTypeId = "Minion";
-
         public Minion()
         {
         }
@@ -106,9 +27,13 @@ namespace MyMinions.Domain
             return snapshot;
         }
 
+        //
+        // basic info
+        //
+
         public void Execute(ChangeNameCommand command)
         {
-            this.RaiseEvent(new NameChangedEvent { Name = command.Name, });
+            this.RaiseEvent(command.AggregateId, new NameChangedEvent { Name = command.Name, });
         }
 
         public void Apply(NameChangedEvent evt)
@@ -116,19 +41,23 @@ namespace MyMinions.Domain
             this.InternalState.MinionName = evt.Name;
         }
 
-        public void Execute(ChangeAllowanceCommand command)
+        //
+        // eanring and spending
+        //
+
+        public void Execute(ChangeWeeklyAllowanceCommand command)
         {
-            this.RaiseEvent(new AllowanceChangedEvent { Allowance = command.Allowance, });
+            this.RaiseEvent(command.AggregateId, new WeeklyAllowanceChangedEvent { Allowance = command.Allowance, });
         }
 
-        public void Apply(AllowanceChangedEvent evt)
+        public void Apply(WeeklyAllowanceChangedEvent evt)
         {
             this.InternalState.WeeklyAllowance = Math.Round(evt.Allowance, MidpointRounding.AwayFromZero);
         }
 
         public void Execute(DeleteCommand command)
         {
-            this.RaiseEvent(new DeletedEvent());
+            this.RaiseEvent(command.AggregateId, new DeletedEvent());
         }
 
         public void Apply(DeletedEvent evt)
@@ -138,8 +67,9 @@ namespace MyMinions.Domain
 
         public void Execute(EarnAllowanceCommand command)
         {
-            this.RaiseEvent(new AllowanceEarntEvent
+            this.RaiseEvent(command.AggregateId, new AllowanceEarntEvent
             {
+                Transactionid = command.Transactionid,
                 Amount = command.Amount,
                 Date = command.Date,
                 Description = command.Description,
@@ -155,8 +85,9 @@ namespace MyMinions.Domain
 
         public void Execute(SpendAllowanceCommand command)
         {
-            this.RaiseEvent(new AllowanceSpentEvent
+            this.RaiseEvent(command.AggregateId, new AllowanceSpentEvent
             {
+                Transactionid = command.Transactionid,
                 Amount = command.Amount,
                 Date = command.Date,
                 Description = command.Description,
@@ -170,10 +101,15 @@ namespace MyMinions.Domain
             this.InternalState.StashedBalance -= evt.FromCash ? 0 : evt.Amount;
         }
 
+        //
+        // deeds
+        //
+
         public void Execute(ScheduleDeed command)
         {
-            this.RaiseEvent(new DeedScheduledEvent
+            this.RaiseEvent(command.AggregateId, new DeedScheduledEvent
             {
+                ScheduledDeedId = command.ScheduledDeedId,
                 DeedId = command.DeedId,
                 Description = command.Description,
                 Monday = command.Monday,
@@ -192,9 +128,9 @@ namespace MyMinions.Domain
 
         public void Execute(UnscheduleDeed command)
         {
-            this.RaiseEvent(new DeedUnscheduledEvent
+            this.RaiseEvent(command.AggregateId, new DeedUnscheduledEvent
             {
-                DeedId = command.DeedId,
+                ScheduledDeedId = command.ScheduledDeedId,
             });
         }
 
@@ -204,10 +140,12 @@ namespace MyMinions.Domain
 
         public void Execute(PerformDeed command)
         {
-            this.RaiseEvent(new DeedPerformedEvent
+            this.RaiseEvent(command.AggregateId, new DeedPerformedEvent
             {
+                PerformedDeedId = command.PerformedDeedId,
                 DeedId = command.DeedId,
                 Date = command.Date,
+                Description = command.Description,
             });
         }
 
@@ -217,9 +155,9 @@ namespace MyMinions.Domain
 
         public void Execute(ResetDeed command)
         {
-            this.RaiseEvent(new DeedResetEvent
+            this.RaiseEvent(command.AggregateId, new DeedResetEvent
             {
-                Id = command.Id,
+                PerformedDeedId = command.PerformedDeedId,
             });
         }
 

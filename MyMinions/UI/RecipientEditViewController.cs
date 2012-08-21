@@ -33,16 +33,16 @@ namespace MyMinions.UI
 
     public class RecipientEditViewController : TableViewController
     {
-        private readonly IDomainCommandExecutor<Minion> commandExecutor;
+        private readonly ICommandExecutor<Minion> commandExecutor;
 
-        private MinionDataContract minion;
+        private MinionContract minion;
 
-        public RecipientEditViewController(IDomainCommandExecutor<Minion> commandExecutor) : base(UITableViewStyle.Grouped)
+        public RecipientEditViewController(ICommandExecutor<Minion> commandExecutor) : base(UITableViewStyle.Grouped)
         {
             this.commandExecutor = commandExecutor;
         }
 
-        public void Load(MinionDataContract minion)
+        public void Load(MinionContract minion)
         {
             this.minion = minion;
 
@@ -77,9 +77,9 @@ namespace MyMinions.UI
                 () => 
                  {
                     this.commandExecutor.Execute(
-                        new MonoKit.Domain.ICommand [] {
+                        new MonoKit.Domain.IAggregateCommand [] {
                             new ChangeNameCommand { AggregateId = minion.Identity, Name = this.minion.MinionName, },
-                            new ChangeAllowanceCommand { AggregateId = minion.Identity, Allowance = this.minion.WeeklyAllowance, }
+                            new ChangeWeeklyAllowanceCommand { AggregateId = minion.Identity, Allowance = this.minion.WeeklyAllowance, }
                         });
                 }).Subscribe();
         }

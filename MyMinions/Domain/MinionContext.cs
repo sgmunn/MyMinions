@@ -1,23 +1,8 @@
 //  --------------------------------------------------------------------------------------------------------------------
-//  <copyright file=".cs" company="sgmunn">
+//  <copyright file="MinionContext.cs" company="sgmunn">
 //    (c) sgmunn 2012  
-// 
-//    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
-//    documentation files (the "Software"), to deal in the Software without restriction, including without limitation 
-//    the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and 
-//    to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-// 
-//    The above copyright notice and this permission notice shall be included in all copies or substantial portions of 
-//    the Software.
-//  
-//    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
-//    THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
-//    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
-//    CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS 
-//    IN THE SOFTWARE.
 //  </copyright>
 //  --------------------------------------------------------------------------------------------------------------------
-// 
 
 namespace MyMinions.Domain
 {
@@ -26,20 +11,25 @@ namespace MyMinions.Domain
     using MyMinions.Domain.Data;
     using MonoKit.Domain.Data.SQLite;
     using MonoKit.Domain.Data;
+    using MyMinions.Domain.Builders;
     using MonoKit.Domain;
-    using System.IO;
 
-    public class MinionContext : SQLiteDomainContext
+    public class MinionContext : SqlDomainContext
     {
-        public MinionContext(SQLiteConnection connection, IEventStoreRepository eventStore, IDomainEventBus eventBus) : base(connection, eventStore, eventBus)
+        public MinionContext(SQLiteConnection connection, IDomainEventBus eventBus) 
+            : base(connection, GetManifest(connection), null, eventBus)
         {
             this.Bootstrap();
         }
 
+        private static IAggregateManifestRepository GetManifest(SQLiteConnection connection)
+        {
+            return new SqlAggregateManifestRepository(connection);
+        }
+
         private void Bootstrap()
         {
-            this.RegisterSnapshot<Minion>(c => new SnapshotRepository<MinionDataContract>(this.Connection));
-            // todo: register a builder to delete deleted minions
+            this.RegisterSnapshot<Minion>(c => new SnapshotRepository<MinionContract>(this.Connection));
 
             this.RegisterBuilder<Minion>((c) =>
             {
@@ -48,7 +38,7 @@ namespace MyMinions.Domain
 
             this.RegisterBuilder<Minion>((c) =>
             {
-                return new MinionReadModelBuilder(new MinionRepository(this.Connection));
+                return new MinionReadModelBuilder(new SqlRepository<MinionContract>(this.Connection));
             });
 
             this.RegisterBuilder<Minion>((c) =>
@@ -60,43 +50,6 @@ namespace MyMinions.Domain
             {
                 return new PerformedDeedReadModelBuilder(new PerformedDeedRepository(this.Connection));
             });
-        }
-    }
-
-    public sealed class MinionDB : SQLiteConnection
-    {
-        public static string MinionDatabasePath()
-        {
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "MyMinions.db");
-        }
-
-        public static MinionDB Main
-        {
-            get
-            {
-                // Lazy static constructor
-                // http://www.yoda.arachsys.com/csharp/singleton.html
-                return Constructor.Instance;
-            }
-        }
-
-        private MinionDB() : base(MinionDatabasePath())
-        {
-            this.CreateTable<MinionDataContract>();
-            this.CreateTable<TransactionDataContract>();
-            this.CreateTable<ScheduledDeedDataContract>();
-            this.CreateTable<PerformedDeedDataContract>();
-        }
-
-        private class Constructor
-        {
-            internal static readonly MinionDB Instance = new MinionDB();
-
-            // Explicit static constructor to tell C# compiler
-            // not to mark type as beforefieldinit
-            static Constructor()
-            {
-            }
         }
     }
 }

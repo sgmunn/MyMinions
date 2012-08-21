@@ -95,7 +95,6 @@
     <Compile Include="AppDelegate.cs" />
     <Compile Include="Domain\MinionContext.cs" />
     <Compile Include="Domain\Minion.cs" />
-    <Compile Include="Domain\Data\MinionDataContract.cs" />
     <Compile Include="UI\MainViewController.cs" />
     <Compile Include="UI\MainViewController.designer.cs">
       <DependentUpon>MainViewController.cs</DependentUpon>
@@ -111,7 +110,6 @@
     <Compile Include="UI\TransactionsViewController.designer.cs" />
     <Compile Include="Domain\Data\TransactionDataContract.cs" />
     <Compile Include="UI\SettingsViewController.cs" />
-    <Compile Include="Domain\Data\MinionRepository.cs" />
     <Compile Include="UI\RecipientEditViewController.cs" />
     <Compile Include="Views\MinionPanoramaViewController.cs" />
     <Compile Include="Views\HomeController.cs" />
@@ -127,9 +125,22 @@
     <Compile Include="Views\SpendController.cs" />
     <Compile Include="Views\ReviewController.cs" />
     <Compile Include="Views\EditController.cs" />
-    <Compile Include="Domain\TransactionReadModelBuilder.cs" />
-    <Compile Include="Domain\MinionReadModelBuilder.cs" />
     <Compile Include="Domain\CommandsEvents.cs" />
+    <Compile Include="Domain\Data\DB.cs" />
+    <Compile Include="Domain\Data\MinionContract.cs" />
+    <Compile Include="Domain\Data\Ids.cs" />
+    <Compile Include="Domain\Builders\MinionReadModelBuilder.cs" />
+    <Compile Include="Domain\Builders\TransactionReadModelBuilder.cs" />
+    <Compile Include="Domain\Data\ScheduledDeedContract.cs" />
+    <Compile Include="Domain\Data\PerformedDeedContract.cs" />
+    <Compile Include="Domain\Builders\ScheduledDeedReadModelBuilder.cs" />
+    <Compile Include="Domain\Builders\PerformedDeedReadModelBuilder.cs" />
+    <Compile Include="Domain\Data\ITransactionRepository.cs" />
+    <Compile Include="Domain\Data\TransactionRepository.cs" />
+    <Compile Include="Domain\Data\IScheduledDeedRepository.cs" />
+    <Compile Include="Domain\Data\ScheduledDeedRepository.cs" />
+    <Compile Include="Domain\Data\IPerformedDeedRepository.cs" />
+    <Compile Include="Domain\Data\PerformedDeedRepository.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -148,6 +159,7 @@
     <Folder Include="UI\" />
     <Folder Include="Images\" />
     <Folder Include="Views\" />
+    <Folder Include="Domain\Builders\" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="UI\MainViewController.xib" />

@@ -21,13 +21,13 @@ namespace MyMinions.UI
     {
         private readonly IDomainContext context;
 
-        private readonly IMinionRepository repository;
+        private readonly IRepository<MinionContract> repository;
 
         private readonly CompositeDisposable lifetime;
 
-        private readonly IDomainCommandExecutor<Minion> commandExecutor;
+        private readonly ICommandExecutor<Minion> commandExecutor;
 
-        public SettingsViewController(IDomainContext context, IMinionRepository repository) : base(UITableViewStyle.Plain, new SettingsSource())
+        public SettingsViewController(IDomainContext context, IRepository<MinionContract> repository) : base(UITableViewStyle.Plain, new SettingsSource())
         {
             this.context = context;
             this.repository = repository;
@@ -44,8 +44,8 @@ namespace MyMinions.UI
             base.ViewDidLoad();
 
             // todo: implement .Where so that we can subscribe to the events we want to know about
-            IObservable<IReadModelChange> bus = this.context.EventBus;
-            this.lifetime.Add(bus.ObserveOnMainThread().Subscribe<IReadModelChange>(this.OnNextReadModel));
+            var bus = this.context.EventBus;
+            this.lifetime.Add(bus.ObserveOnMainThread().Subscribe(this.OnNextReadModel));
 
             if (this.Source.Count == 0)
             {
@@ -95,7 +95,7 @@ namespace MyMinions.UI
             // create a task to load the minions.  Observe the results of the task on
             // the main thread during which we'll load them into the table and 
             // enable the edit button
-            var subscription = Observable.Start<IEnumerable<MinionDataContract>>(
+            var subscription = Observable.Start<IEnumerable<MinionContract>>(
                 () =>
                 {
                     return this.repository.GetAll().OrderBy(x => x.MinionName);
@@ -110,7 +110,7 @@ namespace MyMinions.UI
             this.lifetime.Add(subscription);
         }
 
-        private void LoadMinions(IEnumerable<MinionDataContract> minions)
+        private void LoadMinions(IEnumerable<MinionContract> minions)
         {
             var section1 = ((TableViewSection)this.Source.SectionAt(0));
                 
@@ -125,15 +125,15 @@ namespace MyMinions.UI
             this.NavigationItem.RightBarButtonItem.Enabled = true;
         }
 
-        private void OnNextReadModel(IReadModelChange readModelChange)
+        private void OnNextReadModel(IDataModelEvent readModelChange)
         {
-            if (readModelChange.Item is MinionDataContract)
+            if (readModelChange.Identity is MinionId)
             {
                // this.MinionUpdated((MinionDataContract)readModel);
             }
         }
 
-        private void MinionUpdated(MinionDataContract minion)
+        private void MinionUpdated(MinionContract minion)
         {
             if (minion.Deleted)
             {
@@ -143,7 +143,7 @@ namespace MyMinions.UI
             var section1 = ((TableViewSection)this.Source.SectionAt(0));
 
             // could be added, changed or deleted
-            var element = section1.FirstOrDefault(x => ((MinionDataContract)x.Data).Id == minion.Id);
+            var element = section1.FirstOrDefault(x => ((MinionContract)x.Data).Id == minion.Id);
 
             if (element != null)
             {
@@ -160,16 +160,16 @@ namespace MyMinions.UI
 
         private void NavigateToMinion(Element element)
         {
-            this.NavigateToMinion((MinionDataContract)element.Data);
+            this.NavigateToMinion((MinionContract)element.Data);
         }
 
         private void DeleteMinion(Element element)
         {
-            var minion = (MinionDataContract)element.Data;
+            var minion = (MinionContract)element.Data;
             this.commandExecutor.Execute(new DeleteCommand { AggregateId = minion.Identity, });
         }
 
-        private void NavigateToMinion(MinionDataContract minion)
+        private void NavigateToMinion(MinionContract minion)
         {
             var editor = new RecipientEditViewController(this.commandExecutor);
             editor.Load(minion);
@@ -197,7 +197,7 @@ namespace MyMinions.UI
                 () => 
                  {
                     var id = MinionId.NewId();
-                    this.commandExecutor.Execute(new CreateCommand { AggregateId = id, });
+                    this.commandExecutor.Execute(new ChangeNameCommand { AggregateId = id, Name = "New Minion" });
                 }).Subscribe();
 
             this.lifetime.Add(subscription);

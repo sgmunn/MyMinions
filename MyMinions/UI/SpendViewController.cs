@@ -1,4 +1,6 @@
 
+using MyMinions.Domain.Data;
+
 namespace MyMinions
 {
     using System;

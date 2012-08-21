@@ -69,7 +69,7 @@ namespace MyMinions
         {
             // lazy static constructor for the DB will not get executed until this point, out of the FinishedLoading
             // allowing the application to respond as quick as it can.
-            this.context = new MinionContext(MinionDB.Main, null, new ObservableDomainEventBus());
+            this.context = new MinionContext(DB.Main, new ObservableDomainEventBus());
 
             this.InvokeOnMainThread(() =>
             {

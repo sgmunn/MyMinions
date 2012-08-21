@@ -19,15 +19,15 @@ namespace MyMinions.UI
     public partial class MainViewController : UIViewController, IScrollingPageViewDelegate
     {
         private readonly IDomainContext context;
-        private readonly IMinionRepository repository;
+        private readonly IRepository<MinionContract> repository;
         private readonly ITransactionRepository transactionRepository;
         private readonly CompositeDisposable lifetime;
 
         private ScrollingPageView pagedView;
-        private List<MinionDataContract> minions;
+        private List<MinionContract> minions;
         private int currentPage;
 
-        public MainViewController(IDomainContext context, IMinionRepository repository, ITransactionRepository transactionRepository) : base ("MainViewController", null)
+        public MainViewController(IDomainContext context, IRepository<MinionContract> repository, ITransactionRepository transactionRepository) : base ("MainViewController", null)
         {
             this.context = context;
             this.repository = repository;
@@ -74,8 +74,8 @@ namespace MyMinions.UI
             this.pagedView.Alpha = 1f;
             UIView.CommitAnimations();
 
-            IObservable<IReadModelChange> bus = this.context.EventBus;
-            this.lifetime.Add(bus.ObserveOnMainThread().Subscribe<IReadModelChange>(this.OnNextReadModel));
+            var bus = this.context.EventBus;
+            this.lifetime.Add(bus.ObserveOnMainThread().Subscribe(this.OnNextReadModel));
         }
         
         public override void ViewDidUnload()
@@ -126,15 +126,15 @@ namespace MyMinions.UI
             this.NavigationController.PushViewController(settings, true);
         }
         
-        private void OnNextReadModel(IReadModelChange readModelChange)
+        private void OnNextReadModel(IDataModelEvent readModelChange)
         {
-            if (readModelChange.Item is MinionDataContract)
+            if (readModelChange.Identity is MinionId)
             {
                 //this.MinionUpdated((MinionDataContract)readModel);
             }
         }
 
-        private void MinionUpdated(MinionDataContract minion)
+        private void MinionUpdated(MinionContract minion)
         {
             bool found = false;
             for (int i = 0; i < this.minions.Count; i++) {

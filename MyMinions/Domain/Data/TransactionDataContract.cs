@@ -18,6 +18,7 @@
 //  </copyright>
 //  --------------------------------------------------------------------------------------------------------------------
 // 
+using MyMinions.Domain.Data;
 
 namespace MyMinions.Domain.Data
 {
@@ -26,7 +27,7 @@ namespace MyMinions.Domain.Data
     using MonoKit.Data.SQLite;
     using MonoKit.Domain;
 
-    public class TransactionDataContract : IReadModel
+    public class TransactionDataContract : IDataModel
     {
         public TransactionDataContract()
         {
@@ -34,7 +35,7 @@ namespace MyMinions.Domain.Data
         }
 
         [Ignore]
-        public IIdentity Identity 
+        public IUniqueIdentity Identity 
         {
             get
             {
