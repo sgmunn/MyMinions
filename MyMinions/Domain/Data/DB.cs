@@ -28,6 +28,11 @@ namespace MyMinions.Domain.Data
             }
         }
 
+        public SqlRepository<MinionContract> NewMinionRepository()
+        {
+            return new SqlRepository<MinionContract>(this);
+        }
+
         private DB() : base(MinionDatabasePath())
         {
             this.CreateTable<AggregateManifest>();

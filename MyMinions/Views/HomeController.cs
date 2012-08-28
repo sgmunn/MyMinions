@@ -1,46 +1,33 @@
 //  --------------------------------------------------------------------------------------------------------------------
-//  <copyright file=".cs" company="sgmunn">
+//  <copyright file="HomeController.cs" company="sgmunn">
 //    (c) sgmunn 2012  
-//
-//    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
-//    documentation files (the "Software"), to deal in the Software without restriction, including without limitation 
-//    the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and 
-//    to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-//
-//    The above copyright notice and this permission notice shall be included in all copies or substantial portions of 
-//    the Software.
-//
-//    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
-//    THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
-//    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
-//    CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS 
-//    IN THE SOFTWARE.
 //  </copyright>
 //  --------------------------------------------------------------------------------------------------------------------
-//
-
-using MonoKit.UI.Elements;
-using MonoKit.UI.AwesomeMenu;
-using System.Drawing;
-using System.Collections.Generic;
-using System.Linq;
+using MonoKit.Data.SQLite;
 
 namespace MyMinions.Views
 {
     using System;
-    using MonoKit.Metro;
-    using MonoKit.UI;
     using MonoTouch.UIKit;
+    using MonoKit.UI.AwesomeMenu;
+    using System.Collections.Generic;
+    using System.Linq;
+    using MyMinions.Domain;
+    using MyMinions.Domain.Data;
+    using MonoKit.Domain;
 
     // todo: notify when all animations are complete on menu items and remove from view
 
     public class HomeController : MinionPanoramaViewController
     {
+        private readonly MinionContext context;
 
         public HomeController() : base()
         {
+            this.context = this.InitializeContext();
+
             this.Title = "my minions";
-            this.AddController(new AllMinionsViewController(), 0);
+            this.AddController(new AllMinionsViewController(this.context), 0);
             this.PreviewSize = 0;
         }
 
@@ -48,9 +35,10 @@ namespace MyMinions.Views
         {
             base.LoadView();
         }
-        
+
         protected override IEnumerable<MenuItem> GetMenuItems()
         {
+            // todo: need specific images for menu
             var storyMenuItemImage = UIImage.FromFile("Images/bg-menuitem.png");
             var storyMenuItemImagePressed = UIImage.FromFile("Images/bg-menuitem-highlighted.png");
     
@@ -88,6 +76,27 @@ namespace MyMinions.Views
             // todo: set menu for firing
         }
 
-    }
+        private MinionContext InitializeContext()
+        {
+            Console.WriteLine("Homecontroller startup");
 
+            // lazy static constructor for the DB will not get executed until this point, out of the FinishedLoading
+            // allowing the application to respond as quick as it can.
+            var minionContext = new MinionContext(DB.Main, new ObservableDomainEventBus());
+
+            var minionRepo = new SqlRepository<MinionContract>(DB.Main);
+            var allMinions = minionRepo.GetAll();
+
+            if (!allMinions.Any())
+            {
+                // bootstrap us some
+                var cmd = minionContext.NewCommandExecutor<MinionAggregate>();
+                cmd.Execute(new ChangeNameCommand {AggregateId = MinionId.NewId(), Name = "Minion 1" });
+                cmd.Execute(new ChangeNameCommand {AggregateId = MinionId.NewId(), Name = "Minion 2" });
+                cmd.Execute(new ChangeNameCommand {AggregateId = MinionId.NewId(), Name = "Minion 3" });
+            }
+
+            return minionContext;
+        }
+    }
 }

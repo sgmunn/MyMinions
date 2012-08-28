@@ -1,44 +1,33 @@
 //  --------------------------------------------------------------------------------------------------------------------
-//  <copyright file=".cs" company="sgmunn">
+//  <copyright file="MinionController.cs" company="sgmunn">
 //    (c) sgmunn 2012  
-//
-//    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
-//    documentation files (the "Software"), to deal in the Software without restriction, including without limitation 
-//    the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and 
-//    to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-//
-//    The above copyright notice and this permission notice shall be included in all copies or substantial portions of 
-//    the Software.
-//
-//    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
-//    THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
-//    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
-//    CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS 
-//    IN THE SOFTWARE.
 //  </copyright>
 //  --------------------------------------------------------------------------------------------------------------------
-//
-
-using MonoKit.UI.Elements;
-using MonoKit.UI.AwesomeMenu;
-using System.Drawing;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace MyMinions.Views
 {
     using System;
-    using MonoKit.Metro;
-    using MonoKit.UI;
     using MonoTouch.UIKit;
+    using MonoKit.UI.AwesomeMenu;
+    using System.Collections.Generic;
+    using System.Linq;
+    using MyMinions.Domain.Data;
+    using MyMinions.Domain;
 
     // todo: notify when all animations are complete on menu items and remove from view
 
     public class MinionController : UIBackButtonPanoramaViewController
     {
-        public MinionController() : base()
+        private readonly MinionContext context;
+
+        private readonly MinionContract minion;
+
+        public MinionController(MinionContext context, MinionContract minion) : base()
         {
-            this.Title = "Scarlett";
+            this.context = context;
+            this.minion = minion;
+
+            this.Title = minion.MinionName;
             this.AddController(new TodayDeedsViewController(), 0);
 
             // todo: have an event to show navigated to in order to hook this up later to improve animation speed
@@ -72,6 +61,7 @@ namespace MyMinions.Views
 
         protected override IEnumerable<MenuItem> GetMenuItems()
         {
+            // todo: need images for menu
             var storyMenuItemImage = UIImage.FromFile("Images/bg-menuitem.png");
             var storyMenuItemImagePressed = UIImage.FromFile("Images/bg-menuitem-highlighted.png");
     
@@ -121,9 +111,9 @@ namespace MyMinions.Views
 
         private void NavigateToEditController()
         {
-            this.Present(new EditController());
+            var nav = new UINavigationController(new MinionEditController(this.context, this.minion));
+
+            this.PresentModalViewController(nav, true);
         }
-
     }
-
 }

@@ -1,29 +1,8 @@
 //  --------------------------------------------------------------------------------------------------------------------
-//  <copyright file=".cs" company="sgmunn">
+//  <copyright file="AllMinionsViewController.cs" company="sgmunn">
 //    (c) sgmunn 2012  
-//
-//    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
-//    documentation files (the "Software"), to deal in the Software without restriction, including without limitation 
-//    the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and 
-//    to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-//
-//    The above copyright notice and this permission notice shall be included in all copies or substantial portions of 
-//    the Software.
-//
-//    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
-//    THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
-//    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
-//    CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS 
-//    IN THE SOFTWARE.
 //  </copyright>
 //  --------------------------------------------------------------------------------------------------------------------
-//
-
-using MonoKit.UI.Elements;
-using MonoKit.UI.AwesomeMenu;
-using System.Drawing;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace MyMinions.Views
 {
@@ -31,13 +10,22 @@ namespace MyMinions.Views
     using MonoKit.Metro;
     using MonoKit.UI;
     using MonoTouch.UIKit;
+    using MonoKit.UI.Elements;
+    using System.Linq;
+    using MyMinions.Domain;
+    using MyMinions.Domain.Data;
+    using MonoKit.DataBinding;
 
     // todo: notify when all animations are complete on menu items and remove from view
 
     public class AllMinionsViewController : TableViewController
     {
-        public AllMinionsViewController() : base(UITableViewStyle.Plain)
+        private readonly MinionContext context;
+
+        public AllMinionsViewController(MinionContext context) : base(UITableViewStyle.Plain)
         {
+            this.context = context;
+
             this.Title = "all minions";
         }
 
@@ -45,22 +33,30 @@ namespace MyMinions.Views
         {
             base.LoadView();
 
+            var repo = DB.Main.NewMinionRepository();
+            var allMinions = repo.GetAll();
+
             var section1 = new TableViewSection(this.Source);
-            section1.Add(new StringElement("minion 1") { Command = this.NavigateToMinion });
-            section1.Add(new StringElement("minion 2") { Command = this.NavigateToMinion });
-            section1.Add(new StringElement("minion 3") { Command = this.NavigateToMinion });
-            section1.Add(new StringElement("minion 1") { Command = this.NavigateToMinion });
-            section1.Add(new StringElement("minion 2") { Command = this.NavigateToMinion });
-            section1.Add(new StringElement("minion 3") { Command = this.NavigateToMinion });
+
+            foreach (var minion in allMinions)
+            {
+                section1.Add(new StringElement(minion, new Binding("MinionName")) { Command = this.NavigateToMinion, });
+            }
 
             this.View.Layer.CornerRadius = 10;
         }
 
+        public override void ViewWillAppear(bool animated)
+        {
+            base.ViewWillAppear(animated);
+
+        }
+
         private void NavigateToMinion(Element element)
         {
+            var minion = (MinionContract)element.Data;
             var p = this.ParentViewController as UIPanoramaViewController;
-            p.Present(new MinionController());
+            p.Present(new MinionController(this.context, minion));
         }
     }
-
 }

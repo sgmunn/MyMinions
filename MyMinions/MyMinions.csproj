@@ -140,6 +140,7 @@
     <Compile Include="Domain\Data\PerformedDeedRepository.cs" />
     <Compile Include="Domain\MinionAggregate.cs" />
     <Compile Include="Domain\Data\TransactionContract.cs" />
+    <Compile Include="Views\MinionEditController.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
