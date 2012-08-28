@@ -1,0 +1,55 @@
+﻿<#@ include file="..\Aggregate.tt" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#	      
+	var aggregateTemplate = new AggregateTemplate("QuotingProfile", "urn:QuotingProfile", new [] 
+	{ 
+		new EventInfo("QuotingProfileInfo", new [] 
+		{
+			new EventMemberInfo{ DataType = "string", Name = "Name", IsRequired = true, },
+			new EventMemberInfo{ DataType = "Guid", Name = "AllowanceProfileId", IsRequired = false, },
+			new EventMemberInfo{ DataType = "string", Name = "HoursUnitSingularLabel", IsRequired = false, },
+			new EventMemberInfo{ DataType = "string", Name = "HoursUnitPluralLabel", IsRequired = false, },
+		}),
+		new EventInfo("LabourInputModes", new [] 
+		{
+			new EventMemberInfo{ DataType = "LabourInputMode", Name = "RemoveRefitInputMode", IsRequired = false, },
+			new EventMemberInfo{ DataType = "LabourInputMode", Name = "RepairInputMode", IsRequired = false, },
+			new EventMemberInfo{ DataType = "LabourInputMode", Name = "PaintInputMode", IsRequired = false, },
+			new EventMemberInfo{ DataType = "LabourInputMode", Name = "MechanicalInputMode", IsRequired = false, },
+		}),
+		new EventInfo("PrintOptions", new [] 
+		{
+			new EventMemberInfo{ DataType = "Guid", Name = "SummaryFormatId", IsRequired = false, },
+			new EventMemberInfo{ DataType = "Guid", Name = "DetailFormatId", IsRequired = false, },
+			new EventMemberInfo{ DataType = "Guid", Name = "LabourStyleId", IsRequired = false, },
+			new EventMemberInfo{ DataType = "bool", Name = "SupplementariesItemise", IsRequired = false, },
+			new EventMemberInfo{ DataType = "bool", Name = "SupplementariesStartANewPage", IsRequired = false, },
+			new EventMemberInfo{ DataType = "bool", Name = "ItemiseAllParts", IsRequired = false, },
+			new EventMemberInfo{ DataType = "bool", Name = "ShowPartNumbers", IsRequired = false, },
+			new EventMemberInfo{ DataType = "bool", Name = "ShowListPrice", IsRequired = false, },
+			new EventMemberInfo{ DataType = "bool", Name = "ShowMarkupSeparately", IsRequired = false, },
+			new EventMemberInfo{ DataType = "bool", Name = "StartANewPage", IsRequired = false, },
+		}),
+		new EventInfo("DefaultLabourRates", new [] 
+		{
+			new EventMemberInfo{ DataType = "decimal", Name = "RemoveRefitLabourRate", IsRequired = true, },
+			new EventMemberInfo{ DataType = "decimal", Name = "RepairLabourRate", IsRequired = true, },
+			new EventMemberInfo{ DataType = "PaintHourlyRateEventContract", Name = "PaintLabourRate", IsRequired = true, RequiresInitialization = true, },
+			new EventMemberInfo{ DataType = "decimal", Name = "MechanicalLabourRate", IsRequired = true, },
+			new EventMemberInfo{ DataType = "Collection<PaintHourlyRateEventContract>", Name = "PaintRates", IsRequired = true, IsCollection = true, RequiresInitialization = true, },
+		}),
+		new EventInfo("MarkupRates", new [] 
+		{
+			new EventMemberInfo{ DataType = "decimal", Name = "NewRate", IsRequired = false, },
+			new EventMemberInfo{ DataType = "decimal", Name = "UsedRate", IsRequired = false, },
+			new EventMemberInfo{ DataType = "decimal", Name = "ExchangedRate", IsRequired = false, },
+			new EventMemberInfo{ DataType = "decimal", Name = "AftermarketRate", IsRequired = false, },
+			new EventMemberInfo{ DataType = "decimal", Name = "ReconditionedRate", IsRequired = false, },
+			new EventMemberInfo{ DataType = "decimal", Name = "NetNewRate", IsRequired = false, },
+			new EventMemberInfo{ DataType = "decimal", Name = "NonGenuineRate", IsRequired = false, },
+			new EventMemberInfo{ DataType = "decimal", Name = "SubletRate", IsRequired = false, },
+		}),
+	});
+
+    Write(aggregateTemplate.TransformText());
+#>	
