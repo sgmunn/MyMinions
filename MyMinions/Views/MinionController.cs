@@ -13,6 +13,10 @@ namespace MyMinions.Views
     using System.Linq;
     using MyMinions.Domain.Data;
     using MyMinions.Domain;
+    using MonoKit;
+    using MonoKit.Reactive.Disposables;
+    using MonoKit.Data;
+    using MonoKit.Reactive;
 
     // todo: notify when all animations are complete on menu items and remove from view
 
@@ -22,12 +26,16 @@ namespace MyMinions.Views
 
         private readonly MinionContract minion;
 
+        private readonly CompositeDisposable lifetime;
+
         public MinionController(MinionContext context, MinionContract minion) : base()
         {
             this.context = context;
             this.minion = minion;
+            this.lifetime = new CompositeDisposable();
 
-            this.Title = minion.MinionName;
+            this.Load(minion);
+
             this.AddController(new TodayDeedsViewController(), 0);
 
             // todo: have an event to show navigated to in order to hook this up later to improve animation speed
@@ -41,7 +49,23 @@ namespace MyMinions.Views
 
             this.BackgroundView.BackgroundColor = UIColor.Clear;
         }
+
+        public override void ViewDidLoad()
+        {
+            base.ViewDidLoad();
+
+            var bus = this.context.EventBus;
+            this.lifetime.Add(bus.ObserveOnMainThread().Subscribe(this.OnNextReadModel));
+        }
         
+        public override void ViewDidUnload()
+        {
+            // this can happen if the view gets unloaded with a memory warning and we'll end up with
+            // multiple subscriptions to the domain model when we register in view did load
+            this.lifetime.Clear();
+            base.ViewDidUnload();
+        }
+
         public override void ViewWillAppear(bool animated)
         {
             base.ViewWillAppear(animated);
@@ -114,6 +138,21 @@ namespace MyMinions.Views
             var nav = new UINavigationController(new MinionEditController(this.context, this.minion));
 
             this.PresentModalViewController(nav, true);
+        }
+
+        private void Load(MinionContract minion)
+        {
+            this.Title = minion.MinionName;
+        }
+
+        private void OnNextReadModel(IDataModelEvent readModel)
+        {
+            var dataModel = readModel as DataModelChange;
+            if (dataModel != null && dataModel.Item is MinionContract)
+            {
+                this.Load((MinionContract)dataModel.Item);
+                this.LayoutContent();
+            }
         }
     }
 }
