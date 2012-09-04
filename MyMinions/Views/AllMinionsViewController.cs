@@ -100,15 +100,15 @@ namespace MyMinions.Views
             {
                 return new StringElement(minion, new Binding("MinionName")) 
                 { 
-                    //CanEdit = (x) => { return this.allowDelete; },
                     Edit = this.DeleteMinion,
                 };
             }
             else
             {
-                return new DisclosureElement(minion, new Binding("MinionName")) 
+                return new StringElement(minion, new Binding("MinionName")) 
                 { 
-                    Command = this.NavigateToMinion, 
+                    Command = this.NavigateToMinion,
+                    CanEdit = x => false,
                 };
             }
         }
@@ -146,9 +146,6 @@ namespace MyMinions.Views
         
         private void DoneClicked (object sender, EventArgs e)
         {
-            //this.View.EndEditing(false);
-            //this.SaveMinionAsync();
-            
             this.DismissModalViewControllerAnimated(true);
         }
 
@@ -178,13 +175,6 @@ namespace MyMinions.Views
 
         private void OnNextReadModel(IDataModelEvent readModel)
         {
-
-            // we have deleted, but what about inserted?  we get the read model regardless 
-            // when we are snapshot based.  the tableview deletes the row, the event would end up
-            // putting it back in.  how to handle this nicely.
-
-
-
             var dataModel = readModel as DataModelChange;
             if (dataModel != null && dataModel.Item is MinionContract)
             {
@@ -194,16 +184,26 @@ namespace MyMinions.Views
         
         private void MinionUpdated(MinionContract minion)
         {
-            if (minion.Deleted)
-            {
-                return;
-            }
-            
             var section1 = ((TableViewSection)this.Source.SectionAt(0));
             
             // could be added, changed or deleted
             var element = section1.FirstOrDefault(x => ((MinionContract)x.Data).Id == minion.Id);
-            
+
+            // because we're using a snapshot based aggregate over an event sourced one
+            // we will get a read model event when we delete the minion.
+            // in the table where the minion was deleted it will already have been deleted
+            // but in other tables it will exist and needs to be removed.
+            if (minion.Deleted)
+            {
+                if (element != null)
+                {
+                    section1.Remove(element);
+                }
+
+                return;
+            }
+
+            // now update or insert the minion
             if (element != null)
             {
                 // todo: rearrange based on minion name
