@@ -3,7 +3,6 @@
 //    (c) sgmunn 2012  
 //  </copyright>
 //  --------------------------------------------------------------------------------------------------------------------
-using MonoKit.Data.SQLite;
 
 namespace MyMinions.Views
 {
@@ -15,6 +14,7 @@ namespace MyMinions.Views
     using MyMinions.Domain;
     using MyMinions.Domain.Data;
     using MonoKit.Domain;
+    using MonoKit.Data.SQLite;
 
     // todo: notify when all animations are complete on menu items and remove from view
 
@@ -27,7 +27,7 @@ namespace MyMinions.Views
             this.context = this.InitializeContext();
 
             this.Title = "my minions";
-            this.AddController(new AllMinionsViewController(this.context), 0);
+            this.AddController(new AllMinionsViewController(this.context, "all minions", false), 0);
             this.PreviewSize = 0;
         }
 
@@ -66,20 +66,24 @@ namespace MyMinions.Views
 
         private void NavigateToHireController()
         {
-            this.Present(new HireController());
-            // todo: set menu for hiring
+            var minion = new MinionContract { MinionName = "Minion", };
+            var nav = new UINavigationController(new MinionEditController(this.context, null));
+            
+            this.PresentModalViewController(nav, true);
         }
 
         private void NavigateToFireController()
         {
-            this.Present(new FireController());
+            var minion = new MinionContract { MinionName = "Minion", };
+            var nav = new UINavigationController(new AllMinionsViewController(this.context, "fire minions", true));
+
+            this.PresentModalViewController(nav, true);
+//            this.Present(new FireController(this.context));
             // todo: set menu for firing
         }
 
         private MinionContext InitializeContext()
         {
-            Console.WriteLine("Homecontroller startup");
-
             // lazy static constructor for the DB will not get executed until this point, out of the FinishedLoading
             // allowing the application to respond as quick as it can.
             var minionContext = new MinionContext(DB.Main, new ObservableDomainEventBus());

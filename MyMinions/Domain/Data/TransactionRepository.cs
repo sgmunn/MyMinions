@@ -27,7 +27,7 @@ namespace MyMinions.Domain.Data
         public void DeleteAllForMinion(Guid id)
         {
             SynchronousTask.DoSync(() =>
-                   this.Connection.Execute("delete from TransactionDataContract where MinionId = ?", id)
+                   this.Connection.Execute("delete from TransactionContract where MinionId = ?", id)
                    );
         }
     }

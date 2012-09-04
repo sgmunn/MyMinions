@@ -116,7 +116,6 @@
     <Compile Include="Views\MinionDeedsController.cs" />
     <Compile Include="Views\MinionCashController.cs" />
     <Compile Include="Views\UIBackButtonPanoramaViewController.cs" />
-    <Compile Include="Views\HireController.cs" />
     <Compile Include="Views\FireController.cs" />
     <Compile Include="Views\EarnController.cs" />
     <Compile Include="Views\SpendController.cs" />

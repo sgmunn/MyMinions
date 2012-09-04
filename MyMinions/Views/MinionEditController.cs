@@ -24,18 +24,18 @@ namespace MyMinions.Views
         
         public MinionEditController(MinionContext context, MinionContract minion) : base(UITableViewStyle.Grouped)
         {
-            this.NavigationItem.Title = "edit";
+            this.NavigationItem.Title = minion != null ? "edit" : "hire";
             this.NavigationItem.LeftBarButtonItem = new UIBarButtonItem(UIBarButtonSystemItem.Cancel);
             this.NavigationItem.LeftBarButtonItem.Clicked += CancelClicked;
             this.NavigationItem.RightBarButtonItem = new UIBarButtonItem(UIBarButtonSystemItem.Done);
-            this.NavigationItem.RightBarButtonItem.Clicked += SaveClicked;
+            this.NavigationItem.RightBarButtonItem.Clicked += DoneClicked;
 
             this.context = context;
             //this.commandExecutor = commandExecutor;
             this.Load(minion);
         }
 
-        private void SaveClicked (object sender, EventArgs e)
+        private void DoneClicked (object sender, EventArgs e)
         {
             this.View.EndEditing(false);
             this.SaveMinionAsync();
@@ -51,14 +51,13 @@ namespace MyMinions.Views
         private void Load(MinionContract minion)
         {
             // bit of a hack, ideally I'd have IEditableObject
-            var editMinion = new MinionContract
-            {
-                Id = minion.Id,
-                MinionName = minion.MinionName,
-                WeeklyAllowance = minion.WeeklyAllowance,
-            };
 
-            this.minion = editMinion;
+            this.minion = new MinionContract
+            {
+                Id = minion != null ? minion.Id : Guid.NewGuid(),
+                MinionName = minion != null ? minion.MinionName : "New Minion",
+                WeeklyAllowance = minion != null ? minion.WeeklyAllowance : 0,
+            };
 
             var section1 = new TableViewSection(this.Source);
             
@@ -77,10 +76,7 @@ namespace MyMinions.Views
         
         public override void ViewWillDisappear(bool animated)
         {
-            // tell the view to end editing, resigns responders and triggers a property change for our minion
-            //this.View.EndEditing(false);
             base.ViewWillDisappear(animated);
-            //this.SaveMinionAsync();
         }
         
         private void SaveMinionAsync()
