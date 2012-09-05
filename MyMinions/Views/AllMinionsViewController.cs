@@ -41,9 +41,9 @@ namespace MyMinions.Views
         private Element navigateToMinion;
 
         private bool allowDelete;
-        
+
         public AllMinionsViewController(MinionContext context, string title, bool allowDelete) 
-            : base(UITableViewStyle.Plain, new SettingsSource())
+            : base(allowDelete ? UITableViewStyle.Grouped : UITableViewStyle.Plain, new SettingsSource())
         {
             this.context = context;
             this.lifetime = new CompositeDisposable();
@@ -54,8 +54,6 @@ namespace MyMinions.Views
             this.allowDelete = allowDelete;
             this.Title = title;
             var s = new TableViewSection(this.Source);
-
-         //   this.TableView.SetEditing(true, true);
         }
 
         protected CompositeDisposable Lifetime
@@ -94,25 +92,6 @@ namespace MyMinions.Views
             }
         }
 
-        protected Element LoadMinion(MinionContract minion)
-        {
-            if (this.allowDelete)
-            {
-                return new StringElement(minion, new Binding("MinionName")) 
-                { 
-                    Edit = this.DeleteMinion,
-                };
-            }
-            else
-            {
-                return new StringElement(minion, new Binding("MinionName")) 
-                { 
-                    Command = this.NavigateToMinion,
-                    CanEdit = x => false,
-                };
-            }
-        }
-        
         public override void ViewDidUnload()
         {
             // this can happen if the view gets unloaded with a memory warning and we'll end up with
@@ -143,7 +122,26 @@ namespace MyMinions.Views
         {
             this.NavigateToMinion(this.navigateToMinion);
         }
-        
+
+        protected Element LoadMinion(MinionContract minion)
+        {
+            if (this.allowDelete)
+            {
+                return new StringElement(minion, new Binding("MinionName")) 
+                { 
+                    Edit = this.DeleteMinion,
+                    CanEdit = x => true,
+                };
+            }
+            else
+            {
+                return new StringElement(minion, new Binding("MinionName")) 
+                { 
+                    Command = this.NavigateToMinion,
+                };
+            }
+        }
+
         private void DoneClicked (object sender, EventArgs e)
         {
             this.DismissModalViewControllerAnimated(true);
@@ -216,7 +214,7 @@ namespace MyMinions.Views
                 // also Version == 1
                 var minionElement = this.LoadMinion(minion);
                 section1.Insert(0, minionElement);
-                this.navigateToMinion = minionElement;
+                //this.navigateToMinion = minionElement;
             }
         }
     }

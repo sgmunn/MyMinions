@@ -75,7 +75,7 @@ namespace MyMinions.Views
         private void NavigateToFireController()
         {
             var minion = new MinionContract { MinionName = "Minion", };
-            var nav = new UINavigationController(new AllMinionsViewController(this.context, "fire minions", true));
+            var nav = new UINavigationController(new AllMinionsViewController(this.context, "Fire Minions", true));
 
             this.PresentModalViewController(nav, true);
 //            this.Present(new FireController(this.context));
